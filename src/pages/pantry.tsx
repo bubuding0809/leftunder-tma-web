@@ -70,6 +70,7 @@ const categories = [
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
   const [checkAll, setCheckAll] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
 
   return (
     <div className="relative h-full max-h-screen overflow-y-auto">
@@ -98,10 +99,10 @@ const PantryPage: NextPageWithLayout = () => {
           <ul className="flex space-x-1 overflow-x-auto p-4 pb-3">
             <li>
               <Button
-                variant={checkAll ? "default" : "outline"}
+                variant={categoryFilter.length ? "outline" : "default"}
                 size="sm"
                 className="border-none px-3 text-xs shadow"
-                onClick={() => setCheckAll((prev) => !prev)}
+                onClick={() => setCategoryFilter([])}
               >
                 All
               </Button>
@@ -109,9 +110,21 @@ const PantryPage: NextPageWithLayout = () => {
             {categories.map((category, index) => (
               <li key={index}>
                 <Button
-                  variant="outline"
+                  variant={
+                    categoryFilter.includes(category.name)
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
                   className="border-none px-2 text-xs shadow-md"
+                  onClick={() => {
+                    setCategoryFilter((prev) => {
+                      if (prev.includes(category.name)) {
+                        return prev.filter((item) => item !== category.name);
+                      }
+                      return [...prev, category.name];
+                    });
+                  }}
                 >
                   {`${category.emoji} ${category.name}`}
                 </Button>
@@ -156,20 +169,24 @@ const FoodItemCard = () => {
         <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
       </div>
 
-      <div className="ml-4 flex flex-1 flex-col space-y-1">
+      <div className="ml-4 flex flex-1 flex-col space-y-1.5">
         <h2 className="">Farm Fresh Eggs</h2>
         <p className="text-xs font-light text-zinc-500">
           Tray of farm-fresh eggs.
         </p>
         <Badge
           variant="default"
-          className="flex w-fit items-center rounded pl-2 text-xs font-normal"
+          className="flex w-fit items-center rounded pl-2 text-xs font-normal text-white"
         >
           <CalendarDays className="h-4 w-4" strokeWidth={2} />
           <span className="ml-2 text-nowrap">21 Days Left</span>
         </Badge>
         <p className="text-xs text-zinc-500">
-          <span>Dairy</span> | <span>12 Units left</span>
+          <span>
+            {categories.find((category) => category.name === "Dairy")?.emoji}{" "}
+            Dairy
+          </span>{" "}
+          | <span>12 Units left</span>
         </p>
       </div>
       <Button size="icon" variant="outline" className="ml-4 rounded-full">

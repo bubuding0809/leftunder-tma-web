@@ -1,6 +1,5 @@
-import { useClosingBehavior, useMiniApp } from "@tma.js/sdk-react";
+import { useMiniApp, useViewport } from "@tma.js/sdk-react";
 import { type PropsWithChildren, useEffect } from "react";
-import { usePathname } from "next/navigation";
 import PageHeader from "#/components/layouts/Pageheader";
 
 interface MainLayoutProps extends PropsWithChildren {
@@ -9,14 +8,13 @@ interface MainLayoutProps extends PropsWithChildren {
 
 export default function MainLayout({ title, children }: MainLayoutProps) {
   const miniApp = useMiniApp(true);
-  const tmaClosingBehavior = useClosingBehavior(true);
-
-  const pathName = usePathname();
+  const tmaViewport = useViewport(true);
 
   useEffect(() => {
     miniApp?.ready();
     miniApp?.setHeaderColor("#1C5638");
-  }, [miniApp, pathName]);
+    tmaViewport?.expand();
+  }, [miniApp, tmaViewport]);
 
   return <main className="flex h-screen flex-col">{children}</main>;
 }
