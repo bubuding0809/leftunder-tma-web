@@ -26,7 +26,14 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "#/*": ["./src/*"]
+      "#/*": ["./src/*"],
+      "#components/*": ["./src/components/*"],
+      "#lib/*": ["./src/lib/*"],
+      "#pages/*": ["./src/pages/*"],
+      "#stores/*": ["./src/stores/*"],
+      "#server/*": ["./src/server/*"],
+      "#utils/*": ["./src/utils/*"],
+      "#schema/*": ["./src/types/*"]
     }
   },
   "include": [

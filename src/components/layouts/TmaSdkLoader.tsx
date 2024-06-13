@@ -1,0 +1,34 @@
+import type { PropsWithChildren } from "react";
+import { SDKProvider } from "@tma.js/sdk-react";
+
+interface SDKProviderErrorProps {
+  error: unknown;
+}
+
+function SDKProviderError({ error }: SDKProviderErrorProps) {
+  return (
+    <div>
+      Oops. Something went wrong.
+      <blockquote>
+        <code>
+          {error instanceof Error ? error.message : JSON.stringify(error)}
+        </code>
+      </blockquote>
+    </div>
+  );
+}
+
+function SDKProviderLoading() {
+  return <div>SDK is loading.</div>;
+}
+
+function SDKInitialState() {
+  return <div>Waiting for initialization to start.</div>;
+}
+
+/**
+ * Root component of the whole project.
+ */
+export function TmaSDKLoader({ children }: PropsWithChildren) {
+  return <SDKProvider>{children}</SDKProvider>;
+}

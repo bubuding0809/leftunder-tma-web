@@ -1,15 +1,41 @@
-import { GeistSans } from "geist/font/sans";
-import { type AppType } from "next/app";
-
+import type { AppProps, AppType } from "next/app";
+import { ReactElement, ReactNode } from "react";
+import { NextPage } from "next";
 import { api } from "#/utils/api";
-
 import "#/styles/globals.css";
+import { Josefin_Sans } from "next/font/google";
 
-const MyApp: AppType = ({ Component, pageProps }) => {
+// set up font
+const josefinSans = Josefin_Sans({
+  subsets: ["latin"],
+  variable: "--font-josefin",
+  weight: ["300", "400", "700"],
+});
+
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+// Initialize eruda (mobile debugger) in development mode when running in browser
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  const initEruda = async () => {
+    const { default: eruda } = await import("eruda");
+    eruda.init();
+  };
+  initEruda();
+}
+
+const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
+  const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
-    <main className={GeistSans.className}>
-      <Component {...pageProps} />
-    </main>
+    <div className={`${josefinSans.variable} font-josefin`}>
+      {getLayout(<Component {...pageProps} />)}
+    </div>
   );
 };
 

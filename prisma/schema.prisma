@@ -1,43 +1,44 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model FoodItem {
-    id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    created_at           DateTime  @default(now()) @db.Timestamptz(6)
-    updated_at           DateTime  @default(now()) @db.Timestamptz(6)
-    name                 String
-    description          String
-    storage_instructions String
-    category             String
-    quantity             BigInt
-    unit                 String
-    expiry_date          DateTime? @db.Date
-    shelf_life_days      BigInt?
-    reminder_date        DateTime? @db.Date
-    consumed             Boolean   @default(false)
-    discarded            Boolean   @default(false)
-    user_id              String    @unique @db.Uuid
-    User                 User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @db.Timestamptz(6)
+  name                 String
+  description          String
+  storage_instructions String
+  category             String
+  quantity             BigInt
+  unit                 String
+  expiry_date          DateTime? @db.Date
+  shelf_life_days      BigInt?
+  reminder_date        DateTime  @db.Date
+  consumed             Boolean   @default(false)
+  discarded            Boolean   @default(false)
+  user_id              String    @db.Uuid
+  image_url            String?
+  User                 User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
-    id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    created_at        DateTime  @default(now()) @db.Timestamptz(6)
-    updated_at        DateTime  @default(now()) @db.Timestamptz(6)
-    telegram_chat_id  BigInt    @unique
-    first_name        String?
-    last_name         String?
-    telegram_username String
-    FoodItem          FoodItem?
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at        DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime   @default(now()) @db.Timestamptz(6)
+  telegram_user_id  BigInt     @unique(map: "User_telegram_chat_id_key")
+  first_name        String?
+  last_name         String?
+  telegram_username String
+  FoodItem          FoodItem[]
 }
