@@ -8,12 +8,7 @@ import { Switch } from "#/components/ui/switch";
 import { NextPageWithLayout, josefinSans } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { useClosingBehavior, useInitData } from "@tma.js/sdk-react";
-import {
-  ArrowUpDown,
-  CalendarDays,
-  ChevronRight,
-  ListFilter,
-} from "lucide-react";
+import { ArrowUpDown, CalendarDays, ChevronRight } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
@@ -41,6 +36,15 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import toast, { type Toast } from "react-hot-toast";
+import {
+  LeadingActions,
+  SwipeableList,
+  SwipeableListItem,
+  SwipeAction,
+  TrailingActions,
+  Type,
+} from "react-swipeable-list";
+import "react-swipeable-list/dist/styles.css";
 
 // TODO: Replace with actual data
 const categories = [
@@ -144,8 +148,8 @@ const PantryPage: NextPageWithLayout = () => {
   };
 
   return (
-    <div className="relative h-full max-h-screen overflow-y-auto">
-      <div className="sticky top-0 z-10">
+    <div className="relative">
+      <div className="sticky top-0 z-10 bg-white">
         <div
           className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
           style={{
@@ -267,18 +271,100 @@ const PantryPage: NextPageWithLayout = () => {
   );
 };
 
+const onSendToast = (
+  message: string,
+  actionLabel: string,
+  duration: number = 3000,
+  onAction: (t: Toast) => void,
+) => {
+  toast(
+    (t) => (
+      <span className="text-xs font-medium">
+        {message}
+        <Button
+          className="ml-4 text-xs"
+          text-xs
+          size="icon"
+          variant="link"
+          onClick={() => onAction(t)}
+        >
+          {actionLabel}
+        </Button>
+      </span>
+    ),
+    {
+      duration: duration,
+      position: "top-right",
+    },
+  );
+};
+
 interface FoodItemsListProps {
   foodItems: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"];
 }
 const FoodItemsList = ({ foodItems }: FoodItemsListProps) => {
-  return (
-    <ul className="flex flex-col space-y-3 p-4">
-      {foodItems.map((foodItem) => (
-        <FoodItemCard key={foodItem.id} foodItem={foodItem} />
-      ))}
+  const queryClient = api.useUtils();
+  const updateDeleteStatusMutation =
+    api.foodItem.updateDeleteStatus.useMutation({
+      onSuccess: () => {
+        queryClient.foodItem.getFilteredFoodItems.invalidate();
+        queryClient.foodItem.getTotalFoodItemCount.invalidate();
+      },
+    });
 
-      {foodItems.length === 0 && <FoodItemsEmpty />}
-    </ul>
+  const deleteItemAction = (foodItemId: string) => {
+    return (
+      <TrailingActions>
+        <SwipeAction
+          onClick={() =>
+            updateDeleteStatusMutation.mutate(
+              { foodItemId, deleted: true },
+              {
+                onSuccess: () => {
+                  // Show toast notification to allow user to undo the action
+                  onSendToast(
+                    "Food item deleted successfully",
+                    "Undo",
+                    4000,
+                    (t) =>
+                      updateDeleteStatusMutation
+                        .mutateAsync({
+                          foodItemId: foodItemId,
+                          deleted: false,
+                        })
+                        .then(() => toast.dismiss(t.id)),
+                  );
+                },
+              },
+            )
+          }
+        >
+          <div className="flex items-center rounded-r-md bg-red-600 px-5">
+            <span className="w-max text-white">Delete</span>
+          </div>
+        </SwipeAction>
+      </TrailingActions>
+    );
+  };
+
+  return (
+    <>
+      {foodItems.length > 0 ? (
+        <SwipeableList className="space-y-3 p-4" type={Type.IOS} fullSwipe>
+          {foodItems.map((foodItem) => (
+            <SwipeableListItem
+              key={foodItem.id}
+              trailingActions={deleteItemAction(foodItem.id)}
+              className="flex w-full rounded-md border bg-white p-4 shadow"
+            >
+              <FoodItemCard foodItem={foodItem} />
+            </SwipeableListItem>
+          ))}
+        </SwipeableList>
+      ) : (
+        <FoodItemsEmpty />
+      )}
+    </>
   );
 };
 
@@ -380,8 +466,8 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
   }, [timeToExpiry]);
 
   return (
-    <li className="flex rounded-md border bg-white p-4 shadow">
-      <div className="relative flex h-min">
+    <>
+      <div className="relative flex h-min self-start">
         <Avatar className="relative">
           <AvatarImage src={foodItem?.image_url ?? ""} />
           <AvatarFallback>
@@ -396,7 +482,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         )}
       </div>
 
-      <div className="ml-4 flex flex-1 flex-col space-y-1.5">
+      <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
         <h2 className="text-sm font-semibold">{foodItem.name}</h2>
         <p className="line-clamp-2 text-xs font-light text-zinc-500">
           {foodItem.description}
@@ -434,7 +520,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         timeToExpiryColor={timeToExpiryColor}
         isNewlyAdded={isNewlyAdded}
       />
-    </li>
+    </>
   );
 };
 
@@ -486,34 +572,6 @@ const FoodItemDetails = ({
       },
     });
 
-  const onSendToast = (
-    message: string,
-    actionLabel: string,
-    duration: number = 3000,
-    onAction: (t: Toast) => void,
-  ) => {
-    toast(
-      (t) => (
-        <span className="text-xs font-medium">
-          {message}
-          <Button
-            className="ml-4 text-xs"
-            text-xs
-            size="icon"
-            variant="link"
-            onClick={() => onAction(t)}
-          >
-            {actionLabel}
-          </Button>
-        </span>
-      ),
-      {
-        duration: duration,
-        position: "top-right",
-      },
-    );
-  };
-
   const onConsumeFoodItem = () => {
     updateConsumeStatusMutation.mutate(
       { foodItemId: foodItem.id, consumed: true },
@@ -555,7 +613,11 @@ const FoodItemDetails = ({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button size="icon" variant="outline" className="ml-4 rounded-full">
+        <Button
+          size="icon"
+          variant="outline"
+          className="ml-4 self-start rounded-full"
+        >
           <ChevronRight className="h-4 w-4" strokeWidth={2} />
         </Button>
       </DrawerTrigger>
