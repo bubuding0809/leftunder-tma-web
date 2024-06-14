@@ -386,6 +386,37 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
   const deleteItemAction = (foodItemId: string) => {
     return (
       <TrailingActions>
+        {/* Mark food as deleted */}
+        <SwipeAction
+          destructive={true}
+          onClick={() =>
+            updateDeleteStatusMutation.mutate(
+              { foodItemId, deleted: true },
+              {
+                onSuccess: () => {
+                  // Show toast notification to allow user to undo the action
+                  onSendToast(
+                    "Food item deleted successfully",
+                    "Undo",
+                    3000,
+                    (t) =>
+                      updateDeleteStatusMutation
+                        .mutateAsync({
+                          foodItemId: foodItemId,
+                          deleted: false,
+                        })
+                        .then(() => toast.dismiss(t.id)),
+                  );
+                },
+              },
+            )
+          }
+        >
+          <div className="flex items-center bg-destructive px-5">
+            <span className="text-md w-max text-white">🗑️</span>
+          </div>
+        </SwipeAction>
+
         {/* Mark food as consumed */}
         <SwipeAction
           destructive={true}
@@ -413,38 +444,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
           }
         >
           <div className="flex items-center rounded-r-md bg-primary px-5">
-            <span className="w-max text-white">✅</span>
-          </div>
-        </SwipeAction>
-
-        {/* Mark food as deleted */}
-        <SwipeAction
-          destructive={true}
-          onClick={() =>
-            updateDeleteStatusMutation.mutate(
-              { foodItemId, deleted: true },
-              {
-                onSuccess: () => {
-                  // Show toast notification to allow user to undo the action
-                  onSendToast(
-                    "Food item deleted successfully",
-                    "Undo",
-                    3000,
-                    (t) =>
-                      updateDeleteStatusMutation
-                        .mutateAsync({
-                          foodItemId: foodItemId,
-                          deleted: false,
-                        })
-                        .then(() => toast.dismiss(t.id)),
-                  );
-                },
-              },
-            )
-          }
-        >
-          <div className="flex items-center rounded-r-md bg-red-600 px-5">
-            <span className="w-max text-white">🗑️</span>
+            <span className="text-md w-max text-white">✅</span>
           </div>
         </SwipeAction>
       </TrailingActions>
@@ -467,7 +467,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
       )}
 
       {!editable && foodItems.length > 0 && (
-        <SwipeableList className="space-y-3 p-4" type={Type.IOS} fullSwipe>
+        <SwipeableList className="space-y-3 p-4" type={Type.IOS}>
           {foodItems.map((foodItem) => (
             <SwipeableListItem
               key={foodItem.id}
