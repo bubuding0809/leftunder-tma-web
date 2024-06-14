@@ -140,6 +140,7 @@ const units = [
   "box",
   "jar",
   "container",
+  "bowl",
   "carton",
   "serving",
   "others",
