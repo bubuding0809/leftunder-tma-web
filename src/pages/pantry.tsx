@@ -470,15 +470,15 @@ const FoodItemDetails = ({
   const queryClient = api.useUtils();
 
   // TRPC mutation to mark food item as consumed and deleted
-  const markFoodItemAsConsumedMutation =
-    api.foodItem.markFoodItemAsConsumed.useMutation({
+  const updateConsumeStatusMutation =
+    api.foodItem.updateConsumeStatus.useMutation({
       onSuccess: () => {
         setOpen(false);
         queryClient.foodItem.getFilteredFoodItems.invalidate();
         queryClient.foodItem.getTotalFoodItemCount.invalidate();
       },
     });
-  const updateFoodItemDeletestatus =
+  const updateDeleteStatusMutation =
     api.foodItem.updateDeleteStatus.useMutation({
       onSuccess: () => {
         setOpen(false);
@@ -489,8 +489,9 @@ const FoodItemDetails = ({
 
   const onSendToast = (
     message: string,
-    onAction: (t: Toast) => void,
     actionLabel: string,
+    duration: number = 3000,
+    onAction: (t: Toast) => void,
   ) => {
     toast(
       (t) => (
@@ -508,17 +509,30 @@ const FoodItemDetails = ({
         </span>
       ),
       {
-        duration: 3000,
+        duration: duration,
+        position: "top-right",
       },
     );
   };
 
   const onConsumeFoodItem = () => {
-    markFoodItemAsConsumedMutation.mutate({ foodItemId: foodItem.id });
+    updateConsumeStatusMutation.mutate(
+      { foodItemId: foodItem.id, consumed: true },
+      {
+        onSuccess: () => {
+          // Show toast notification to allow user to undo the action
+          onSendToast("Food item marked as consumed", "Undo", 4000, (t) =>
+            updateConsumeStatusMutation
+              .mutateAsync({ foodItemId: foodItem.id, consumed: false })
+              .then(() => toast.dismiss(t.id)),
+          );
+        },
+      },
+    );
   };
 
   const onDeleteFoodItem = () => {
-    updateFoodItemDeletestatus.mutate(
+    updateDeleteStatusMutation.mutate(
       {
         foodItemId: foodItem.id,
         deleted: true,
@@ -526,16 +540,13 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast(
-            "Food item deleted successfully",
-            (t) =>
-              updateFoodItemDeletestatus
-                .mutateAsync({
-                  foodItemId: foodItem.id,
-                  deleted: false,
-                })
-                .then(() => toast.dismiss(t.id)),
-            "Undo",
+          onSendToast("Food item deleted successfully", "Undo", 4000, (t) =>
+            updateDeleteStatusMutation
+              .mutateAsync({
+                foodItemId: foodItem.id,
+                deleted: false,
+              })
+              .then(() => toast.dismiss(t.id)),
           );
         },
       },
@@ -610,10 +621,10 @@ const FoodItemDetails = ({
         <DrawerFooter>
           <Button
             onClick={() => onConsumeFoodItem()}
-            disabled={markFoodItemAsConsumedMutation.isPending}
+            disabled={updateConsumeStatusMutation.isPending}
           >
             <span className="mr-1">
-              {markFoodItemAsConsumedMutation.isPending ? <Spinner /> : "✅"}
+              {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
             </span>
             Mark as consumed
           </Button>
@@ -621,10 +632,10 @@ const FoodItemDetails = ({
             variant="outline"
             className="text-red-600"
             onClick={() => onDeleteFoodItem()}
-            disabled={updateFoodItemDeletestatus.isPending}
+            disabled={updateDeleteStatusMutation.isPending}
           >
             <span className="mr-1">
-              {updateFoodItemDeletestatus.isPending ? <Spinner /> : "❌"}
+              {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
             </span>
             Delete
           </Button>

@@ -3,9 +3,10 @@ import { z } from "zod";
 
 const inputSchema = z.object({
   foodItemId: z.string(),
+  consumed: z.boolean(),
 });
 
-export const markFoodItemAsConsumed = publicProcedure
+export const updateConsumeStatus = publicProcedure
   .input(inputSchema)
   .mutation(async ({ input, ctx }) => {
     return await ctx.db.foodItem.update({
@@ -13,7 +14,7 @@ export const markFoodItemAsConsumed = publicProcedure
         id: input.foodItemId,
       },
       data: {
-        consumed: true,
+        consumed: input.consumed,
       },
     });
   });

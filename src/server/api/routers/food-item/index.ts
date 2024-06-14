@@ -1,12 +1,12 @@
 import { createTRPCRouter } from "#/server/api/trpc";
 import { getFilteredFoodItems } from "./getFilteredFoodItems";
 import { getTotalFoodItemCount } from "./getTotalFoodItemCount";
-import { markFoodItemAsConsumed } from "./markFoodItemAsConsumed";
+import { updateConsumeStatus } from "./updateConsumeStatus";
 import { updateDeleteStatus } from "./updateDeleteStatus";
 
 export const foodItemRouter = createTRPCRouter({
   getFilteredFoodItems,
   getTotalFoodItemCount,
-  markFoodItemAsConsumed,
+  updateConsumeStatus,
   updateDeleteStatus,
 });
