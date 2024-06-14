@@ -413,7 +413,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
           }
         >
           <div className="flex items-center rounded-r-md bg-primary px-5">
-            <span className="w-max text-white">Consume</span>
+            <span className="w-max text-white">✅</span>
           </div>
         </SwipeAction>
 
@@ -444,7 +444,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
           }
         >
           <div className="flex items-center rounded-r-md bg-red-600 px-5">
-            <span className="w-max text-white">Delete</span>
+            <span className="w-max text-white">🗑️</span>
           </div>
         </SwipeAction>
       </TrailingActions>
