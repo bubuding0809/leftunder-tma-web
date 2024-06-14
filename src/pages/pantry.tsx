@@ -361,6 +361,7 @@ const onSendToast = (
       <span className="text-xs font-medium">
         {message}
         <Button
+          type="button"
           className="ml-4 text-xs"
           text-xs
           size="icon"
