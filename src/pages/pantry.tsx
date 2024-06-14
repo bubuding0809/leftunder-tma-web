@@ -214,7 +214,7 @@ const PantryPage: NextPageWithLayout = () => {
 
   return (
     <div className="relative">
-      <div className="sticky top-0 z-[999] bg-white">
+      <div className="sticky top-0 z-10 bg-white">
         <div
           className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
           style={{
