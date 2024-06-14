@@ -18,7 +18,7 @@ model FoodItem {
   description          String
   storage_instructions String
   category             String
-  quantity             BigInt
+  quantity             Float
   unit                 String
   expiry_date          DateTime? @db.Date
   shelf_life_days      BigInt?
