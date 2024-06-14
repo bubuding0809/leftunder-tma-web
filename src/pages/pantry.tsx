@@ -245,10 +245,10 @@ const PantryPage: NextPageWithLayout = () => {
                     ✍️ Created (oldest)
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:desc">
-                    ⏳ expirying (latest)
+                    ⏳ Expiring (latest)
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⏳ expirying (soonest)
+                    ⏳ Expiring (soonest)
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
