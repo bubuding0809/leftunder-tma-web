@@ -41,7 +41,6 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import toast, { type Toast } from "react-hot-toast";
-import { updateDeleteStatus } from "#/server/api/routers/food-item/updateDeleteStatus";
 
 // TODO: Replace with actual data
 const categories = [
