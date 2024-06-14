@@ -8,7 +8,12 @@ import { Switch } from "#/components/ui/switch";
 import { NextPageWithLayout, josefinSans } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { useClosingBehavior, useInitData } from "@tma.js/sdk-react";
-import { ArrowUpDown, CalendarDays, ChevronRight } from "lucide-react";
+import {
+  ArrowUpDown,
+  CalendarDays,
+  CalendarIcon,
+  ChevronRight,
+} from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
@@ -23,7 +28,7 @@ import { api } from "#/utils/api";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
 import { match } from "ts-pattern";
-import { differenceInHours, differenceInDays } from "date-fns";
+import { differenceInHours, differenceInDays, format } from "date-fns";
 import Spinner from "#/components/ui/spinner";
 import useDebounce from "#/hooks/useDebounce";
 import {
@@ -45,6 +50,29 @@ import {
   Type,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
+import { Checkbox } from "#/components/ui/checkbox";
+import { Calendar } from "#/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#/components/ui/popover";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "#/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 
 // TODO: Replace with actual data
 const categories = [
@@ -98,8 +126,38 @@ const categories = [
   },
 ];
 
+// TODO: Replace with actual data
+const units = [
+  "g",
+  "ml",
+  "oz",
+  "l",
+  "kg",
+  "piece",
+  "packet",
+  "bottle",
+  "cup",
+  "can",
+  "box",
+  "jar",
+  "container",
+  "carton",
+  "serving",
+  "others",
+];
+
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
+  const tmaClosingBehavior = useClosingBehavior(true);
+
+  // Enable confirmation dialog when closing the drawer to prevent accidental closing
+  useEffect(() => {
+    tmaClosingBehavior?.enableConfirmation();
+    return () => {
+      tmaClosingBehavior?.disableConfirmation();
+    };
+  }, [tmaClosingBehavior]);
+
   const {
     debouncedValue: search,
     liveValue: liveSearch,
@@ -115,6 +173,7 @@ const PantryPage: NextPageWithLayout = () => {
     field: "created_at",
     direction: "desc",
   });
+  const [editable, setEditable] = useState(false);
 
   // TRPC query to get filtered food items
   const foodItemsQuery = api.foodItem.getFilteredFoodItems.useQuery(
@@ -236,7 +295,11 @@ const PantryPage: NextPageWithLayout = () => {
 
           <div className="flex items-center justify-between px-4 pb-3 pt-2 text-sm">
             <div className="flex items-center space-x-2">
-              <Switch id="airplane-mode" />
+              <Switch
+                id="airplane-mode"
+                checked={editable}
+                onCheckedChange={setEditable}
+              />
               <Label htmlFor="airplane-mode">Quick edit</Label>
             </div>
             <div>
@@ -252,7 +315,7 @@ const PantryPage: NextPageWithLayout = () => {
           {
             status: "success",
           },
-          ({ data }) => <FoodItemsList foodItems={data} />,
+          ({ data }) => <FoodItemsList foodItems={data} editable={editable} />,
         )
         .with(
           {
@@ -301,8 +364,9 @@ const onSendToast = (
 
 interface FoodItemsListProps {
   foodItems: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"];
+  editable: boolean;
 }
-const FoodItemsList = ({ foodItems }: FoodItemsListProps) => {
+const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
   const queryClient = api.useUtils();
   const updateDeleteStatusMutation =
     api.foodItem.updateDeleteStatus.useMutation({
@@ -349,7 +413,20 @@ const FoodItemsList = ({ foodItems }: FoodItemsListProps) => {
 
   return (
     <>
-      {foodItems.length > 0 ? (
+      {editable && foodItems.length > 0 && (
+        <ul className="flex flex-col space-y-3 p-4">
+          {foodItems.map((foodItem) => (
+            <li
+              key={foodItem.id}
+              className="flex w-full rounded-md border bg-white p-4 shadow"
+            >
+              <FoodItemEditCard foodItem={foodItem} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!editable && foodItems.length > 0 && (
         <SwipeableList className="space-y-3 p-4" type={Type.IOS} fullSwipe>
           {foodItems.map((foodItem) => (
             <SwipeableListItem
@@ -361,9 +438,9 @@ const FoodItemsList = ({ foodItems }: FoodItemsListProps) => {
             </SwipeableListItem>
           ))}
         </SwipeableList>
-      ) : (
-        <FoodItemsEmpty />
       )}
+
+      {foodItems.length === 0 && <FoodItemsEmpty />}
     </>
   );
 };
@@ -540,17 +617,6 @@ const FoodItemDetails = ({
   timeToExpiry,
   timeToExpiryColor,
 }: FoodItemDetailsProps) => {
-  const tmaClosingBehavior = useClosingBehavior(true);
-
-  // Enable confirmation dialog when closing the drawer to prevent accidental closing
-  useEffect(() => {
-    if (open) {
-      tmaClosingBehavior?.enableConfirmation();
-    } else {
-      tmaClosingBehavior?.disableConfirmation();
-    }
-  }, [open]);
-
   // TRPC utils to access query context
   const queryClient = api.useUtils();
 
@@ -703,6 +769,172 @@ const FoodItemDetails = ({
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+  );
+};
+
+const foodItemFormSchema = z.object({
+  expiryDate: z.date(),
+  category: z.string(),
+  quantity: z.number(),
+  unit: z.string(),
+});
+
+interface FoodItemEditCardProps {
+  foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
+}
+const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
+  // Consider food as newly added if it was added in the last 12 hours
+  const isNewlyAdded =
+    Math.abs(differenceInHours(new Date(), new Date(foodItem.created_at))) < 12;
+
+  const form = useForm<z.infer<typeof foodItemFormSchema>>({
+    resolver: zodResolver(foodItemFormSchema),
+    defaultValues: {
+      expiryDate: new Date(foodItem.expiry_date ?? ""),
+      category: foodItem.category,
+      quantity: parseInt(foodItem.quantity.toString()),
+      unit: foodItem.unit,
+    },
+  });
+
+  return (
+    <>
+      <div className="relative flex h-min self-start">
+        <Avatar className="relative">
+          <AvatarImage src={foodItem?.image_url ?? ""} />
+          <AvatarFallback>
+            {
+              categories.find((category) => category.name === foodItem.category)
+                ?.emoji
+            }
+          </AvatarFallback>
+        </Avatar>
+        {isNewlyAdded && (
+          <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
+        )}
+      </div>
+
+      <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{foodItem.name}</h2>
+          <Checkbox />
+        </div>
+        <p className="line-clamp-2 text-xs font-light text-zinc-500">
+          {foodItem.description}
+        </p>
+
+        <Form {...form}>
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="expiryDate"
+              render={({ field }) => (
+                <div className="flex items-center space-x-2">
+                  <Label>Expiry Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        size="sm"
+                        className={cn(
+                          "flex-1 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <div className="flex items-center space-x-2">
+                  <Label>Category</Label>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category, index) => (
+                        <SelectItem key={index} value={category.name}>
+                          <span>
+                            {category.emoji} {category.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+
+            <div className="flex space-x-2">
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <div className="flex items-center space-x-2">
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      {...field}
+                      className="h-9 w-14 text-center"
+                    />
+                  </div>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <div>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((unit, index) => (
+                          <SelectItem key={index} value={unit}>
+                            <span>{unit}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
+            </div>
+          </div>
+        </Form>
+      </div>
+    </>
   );
 };
 
