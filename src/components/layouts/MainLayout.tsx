@@ -1,6 +1,5 @@
 import { useMiniApp, useViewport } from "@tma.js/sdk-react";
 import { type PropsWithChildren, useEffect } from "react";
-import PageHeader from "#/components/layouts/Pageheader";
 
 interface MainLayoutProps extends PropsWithChildren {
   title: string;

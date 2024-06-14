@@ -5,12 +5,23 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Separator } from "#/components/ui/separator";
 import { Switch } from "#/components/ui/switch";
-import { NextPageWithLayout } from "#/pages/_app";
+import { NextPageWithLayout, josefinSans } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { useInitData } from "@tma.js/sdk-react";
-import { CalendarDays, ChevronRight, ListFilter } from "lucide-react";
+import { CalendarDays, ChevronRight, ListFilter, Trash } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { useState } from "react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "#/components/ui/drawer";
+import { cn } from "#/lib/utils";
 
 // TODO: Replace with actual data
 const totalFoodItems = "35";
@@ -69,7 +80,6 @@ const categories = [
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
-  const [checkAll, setCheckAll] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
 
   return (
@@ -170,9 +180,10 @@ const FoodItemCard = () => {
       </div>
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5">
-        <h2 className="">Farm Fresh Eggs</h2>
-        <p className="text-xs font-light text-zinc-500">
-          Tray of farm-fresh eggs.
+        <h2 className="text-sm font-semibold">Farm Fresh Eggs</h2>
+        <p className="line-clamp-2 text-xs font-light text-zinc-500">
+          Tray of farm-fresh eggs. Big and brown. Yummmy, make some omelettes
+          with them 🍳
         </p>
         <Badge
           variant="default"
@@ -189,10 +200,72 @@ const FoodItemCard = () => {
           | <span>12 Units left</span>
         </p>
       </div>
-      <Button size="icon" variant="outline" className="ml-4 rounded-full">
-        <ChevronRight className="h-4 w-4" strokeWidth={2} />
-      </Button>
+
+      <FoodItemDetails />
     </li>
+  );
+};
+
+const FoodItemDetails = () => {
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <Button size="icon" variant="outline" className="ml-4 rounded-full">
+          <ChevronRight className="h-4 w-4" strokeWidth={2} />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className={cn(josefinSans.className)}>
+        <div className="flex p-6">
+          <div className="relative flex h-min">
+            <Avatar className="relative">
+              <AvatarImage src="" />
+              <AvatarFallback>🍎</AvatarFallback>
+            </Avatar>
+            <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
+          </div>
+          <div className="ml-4 flex flex-1 flex-col space-y-1.5">
+            <h2 className="text-sm font-semibold">Farm Fresh Eggs</h2>
+            <p className="text-xs font-light text-zinc-500">
+              Tray of farm-fresh eggs.
+            </p>
+            <Badge
+              variant="default"
+              className="flex w-fit items-center rounded pl-2 text-xs font-normal text-white"
+            >
+              <CalendarDays className="h-3.5 w-3.5" strokeWidth={2} />
+              <span className="ml-2 text-nowrap">21 Days Left</span>
+            </Badge>
+            <p className="text-xs text-zinc-500">
+              <span>
+                {
+                  categories.find((category) => category.name === "Dairy")
+                    ?.emoji
+                }{" "}
+                Dairy
+              </span>{" "}
+              | <span>12 Units left</span>
+            </p>
+            <div className="flex flex-col space-y-2 pt-3 text-xs">
+              <p>
+                <span>🗄️</span>
+                <span className="ml-1">
+                  Store in a cool, dry place or refrigerate to extend freshness
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <Separator />
+        <DrawerFooter>
+          <Button>✅ Mark as consumed</Button>
+          <DrawerClose>
+            <Button variant="outline" className="w-full text-red-600">
+              ❌ Delete
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };
 

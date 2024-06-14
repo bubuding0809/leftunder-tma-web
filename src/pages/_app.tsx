@@ -6,10 +6,10 @@ import "#/styles/globals.css";
 import { Josefin_Sans } from "next/font/google";
 
 // set up font
-const josefinSans = Josefin_Sans({
+export const josefinSans = Josefin_Sans({
   subsets: ["latin"],
   variable: "--font-josefin",
-  weight: ["300", "400", "700"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
