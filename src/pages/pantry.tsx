@@ -42,7 +42,6 @@ import {
 } from "#/components/ui/dropdown-menu";
 import toast, { type Toast } from "react-hot-toast";
 import {
-  LeadingActions,
   SwipeableList,
   SwipeableListItem,
   SwipeAction,
@@ -357,6 +356,7 @@ const onSendToast = (
     ),
     {
       duration: duration,
+      icon: "👋",
       position: "top-right",
     },
   );
@@ -368,6 +368,13 @@ interface FoodItemsListProps {
 }
 const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
   const queryClient = api.useUtils();
+  const updateConsumeStatusMutation =
+    api.foodItem.updateConsumeStatus.useMutation({
+      onSuccess: () => {
+        queryClient.foodItem.getFilteredFoodItems.invalidate();
+        queryClient.foodItem.getTotalFoodItemCount.invalidate();
+      },
+    });
   const updateDeleteStatusMutation =
     api.foodItem.updateDeleteStatus.useMutation({
       onSuccess: () => {
@@ -379,7 +386,40 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
   const deleteItemAction = (foodItemId: string) => {
     return (
       <TrailingActions>
+        {/* Mark food as consumed */}
         <SwipeAction
+          destructive={true}
+          onClick={() =>
+            updateConsumeStatusMutation.mutate(
+              { foodItemId, consumed: true },
+              {
+                onSuccess: () => {
+                  // Show toast notification to allow user to undo the action
+                  onSendToast(
+                    "Food item marked as consumed",
+                    "Undo",
+                    3000,
+                    (t) =>
+                      updateConsumeStatusMutation
+                        .mutateAsync({
+                          foodItemId: foodItemId,
+                          consumed: false,
+                        })
+                        .then(() => toast.dismiss(t.id)),
+                  );
+                },
+              },
+            )
+          }
+        >
+          <div className="flex items-center rounded-r-md bg-primary px-5">
+            <span className="w-max text-white">Consume</span>
+          </div>
+        </SwipeAction>
+
+        {/* Mark food as deleted */}
+        <SwipeAction
+          destructive={true}
           onClick={() =>
             updateDeleteStatusMutation.mutate(
               { foodItemId, deleted: true },
@@ -389,7 +429,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
                   onSendToast(
                     "Food item deleted successfully",
                     "Undo",
-                    4000,
+                    3000,
                     (t) =>
                       updateDeleteStatusMutation
                         .mutateAsync({
@@ -644,7 +684,7 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item marked as consumed", "Undo", 4000, (t) =>
+          onSendToast("Food item marked as consumed", "Undo", 3000, (t) =>
             updateConsumeStatusMutation
               .mutateAsync({ foodItemId: foodItem.id, consumed: false })
               .then(() => toast.dismiss(t.id)),
@@ -663,7 +703,7 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item deleted successfully", "Undo", 4000, (t) =>
+          onSendToast("Food item deleted successfully", "Undo", 3000, (t) =>
             updateDeleteStatusMutation
               .mutateAsync({
                 foodItemId: foodItem.id,
