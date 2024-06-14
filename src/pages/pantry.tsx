@@ -502,7 +502,11 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
       )}
 
       {!editable && foodItems.length > 0 && (
-        <SwipeableList className="space-y-3 p-4" type={Type.IOS}>
+        <SwipeableList
+          className="space-y-3 p-4"
+          type={Type.IOS}
+          destructiveCallbackDelay={100}
+        >
           {foodItems.map((foodItem) => (
             <SwipeableListItem
               key={foodItem.id}
