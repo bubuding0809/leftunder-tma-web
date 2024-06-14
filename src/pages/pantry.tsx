@@ -942,8 +942,10 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
                     <Label>Quantity</Label>
                     <Input
                       type="number"
-                      {...field}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       className="h-9 w-14 text-center"
+                      {...field}
                     />
                   </div>
                 )}
