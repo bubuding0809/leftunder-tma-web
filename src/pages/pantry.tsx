@@ -356,7 +356,7 @@ const onSendToast = (
     ),
     {
       duration: duration,
-      icon: "👋",
+      icon: "🚨",
       position: "top-right",
     },
   );
