@@ -2,8 +2,9 @@ import type { AppProps, AppType } from "next/app";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next";
 import { api } from "#/utils/api";
-import "#/styles/globals.css";
 import { Josefin_Sans } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+import "#/styles/globals.css";
 
 // set up font
 export const josefinSans = Josefin_Sans({
@@ -35,6 +36,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   return (
     <div className={`${josefinSans.variable} font-josefin`}>
       {getLayout(<Component {...pageProps} />)}
+      <Toaster />
     </div>
   );
 };
