@@ -8,6 +8,7 @@ import { Switch } from "#/components/ui/switch";
 import { NextPageWithLayout, josefinSans } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { useClosingBehavior, useInitData } from "@tma.js/sdk-react";
+import { postEvent } from "@tma.js/sdk";
 import {
   ArrowUpDown,
   CalendarDays,
@@ -202,6 +203,11 @@ const PantryPage: NextPageWithLayout = () => {
     );
 
   const onSortChange = (value: string) => {
+    postEvent("web_app_trigger_haptic_feedback", {
+      type: "notification",
+      notification_type: "success",
+    });
+
     const [field, direction] = value.split(":") as [string, "asc" | "desc"];
     setSort({ field, direction });
   };
@@ -263,7 +269,13 @@ const PantryPage: NextPageWithLayout = () => {
                 variant={categoryFilter.length ? "outline" : "default"}
                 size="sm"
                 className="border-none px-3 text-xs shadow"
-                onClick={() => setCategoryFilter([])}
+                onClick={() => {
+                  postEvent("web_app_trigger_haptic_feedback", {
+                    type: "notification",
+                    notification_type: "success",
+                  });
+                  setCategoryFilter([]);
+                }}
               >
                 All
               </Button>
@@ -279,6 +291,10 @@ const PantryPage: NextPageWithLayout = () => {
                   size="sm"
                   className="border-none px-2 text-xs shadow-md"
                   onClick={() => {
+                    postEvent("web_app_trigger_haptic_feedback", {
+                      type: "notification",
+                      notification_type: "success",
+                    });
                     setCategoryFilter((prev) => {
                       if (prev.includes(category.name)) {
                         return prev.filter((item) => item !== category.name);
@@ -390,7 +406,11 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
         {/* Mark food as deleted */}
         <SwipeAction
           destructive={true}
-          onClick={() =>
+          onClick={() => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
             updateDeleteStatusMutation.mutate(
               { foodItemId, deleted: true },
               {
@@ -400,18 +420,23 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
                     "Food item deleted successfully",
                     "Undo",
                     3000,
-                    (t) =>
+                    (t) => {
+                      postEvent("web_app_trigger_haptic_feedback", {
+                        type: "notification",
+                        notification_type: "success",
+                      });
                       updateDeleteStatusMutation
                         .mutateAsync({
                           foodItemId: foodItemId,
                           deleted: false,
                         })
-                        .then(() => toast.dismiss(t.id)),
+                        .then(() => toast.dismiss(t.id));
+                    },
                   );
                 },
               },
-            )
-          }
+            );
+          }}
         >
           <div className="flex items-center bg-destructive px-5">
             <span className="text-md w-max text-white">🗑️</span>
@@ -421,7 +446,11 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
         {/* Mark food as consumed */}
         <SwipeAction
           destructive={true}
-          onClick={() =>
+          onClick={() => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
             updateConsumeStatusMutation.mutate(
               { foodItemId, consumed: true },
               {
@@ -431,18 +460,23 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
                     "Food item marked as consumed",
                     "Undo",
                     3000,
-                    (t) =>
+                    (t) => {
+                      postEvent("web_app_trigger_haptic_feedback", {
+                        type: "notification",
+                        notification_type: "success",
+                      });
                       updateConsumeStatusMutation
                         .mutateAsync({
                           foodItemId: foodItemId,
                           consumed: false,
                         })
-                        .then(() => toast.dismiss(t.id)),
+                        .then(() => toast.dismiss(t.id));
+                    },
                   );
                 },
               },
-            )
-          }
+            );
+          }}
         >
           <div className="flex items-center rounded-r-md bg-primary px-5">
             <span className="text-md w-max text-white">✅</span>
@@ -680,22 +714,34 @@ const FoodItemDetails = ({
     });
 
   const onConsumeFoodItem = () => {
+    postEvent("web_app_trigger_haptic_feedback", {
+      type: "notification",
+      notification_type: "success",
+    });
     updateConsumeStatusMutation.mutate(
       { foodItemId: foodItem.id, consumed: true },
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item marked as consumed", "Undo", 3000, (t) =>
+          onSendToast("Food item marked as consumed", "Undo", 3000, (t) => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
             updateConsumeStatusMutation
               .mutateAsync({ foodItemId: foodItem.id, consumed: false })
-              .then(() => toast.dismiss(t.id)),
-          );
+              .then(() => toast.dismiss(t.id));
+          });
         },
       },
     );
   };
 
   const onDeleteFoodItem = () => {
+    postEvent("web_app_trigger_haptic_feedback", {
+      type: "notification",
+      notification_type: "success",
+    });
     updateDeleteStatusMutation.mutate(
       {
         foodItemId: foodItem.id,
@@ -704,14 +750,18 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item deleted successfully", "Undo", 3000, (t) =>
+          onSendToast("Food item deleted successfully", "Undo", 3000, (t) => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
             updateDeleteStatusMutation
               .mutateAsync({
                 foodItemId: foodItem.id,
                 deleted: false,
               })
-              .then(() => toast.dismiss(t.id)),
-          );
+              .then(() => toast.dismiss(t.id));
+          });
         },
       },
     );
