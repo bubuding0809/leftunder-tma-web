@@ -257,7 +257,7 @@ const PantryPage: NextPageWithLayout = () => {
                     ⏳ Expiring soon
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⏳ Expiring last
+                    ⌛️ Expiring last
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
