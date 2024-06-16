@@ -580,12 +580,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
       {editable && foodItems.length > 0 && (
         <ul className="flex flex-col space-y-3 p-4">
           {foodItems.map((foodItem) => (
-            <li
-              key={foodItem.id}
-              className="flex w-full rounded-md border bg-white p-4 shadow"
-            >
-              <FoodItemEditCard foodItem={foodItem} />
-            </li>
+            <FoodItemEditCard foodItem={foodItem} />
           ))}
         </ul>
       )}
@@ -969,6 +964,7 @@ const foodItemFormSchema = z.object({
   category: z.string(),
   quantity: z.number(),
   unit: z.string(),
+  consumed: z.boolean(),
 });
 
 interface FoodItemEditCardProps {
@@ -986,11 +982,20 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
       category: foodItem.category,
       quantity: parseInt(foodItem.quantity.toString()),
       unit: foodItem.unit,
+      consumed: false,
     },
   });
 
+  const checkedForConsumed = form.watch("consumed");
+
   return (
-    <>
+    <li
+      key={foodItem.id}
+      className={cn(
+        "flex w-full rounded-md border bg-white p-4 shadow",
+        checkedForConsumed && "ring-2 ring-primary ring-offset-2",
+      )}
+    >
       <div className="relative flex h-min self-start">
         <Avatar className="relative">
           <AvatarImage src={foodItem?.image_url ?? ""} />
@@ -1006,78 +1011,88 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
         )} */}
       </div>
 
-      <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
+      <Form {...form} className="ml-4 flex flex-1 flex-col space-y-1.5">
         <div className="flex items-center justify-between">
           <h2 className="line-clamp-1 font-semibold leading-none">
-            {foodItem.name} hot
+            {foodItem.name}
           </h2>
-          <div className="ml-1 flex items-center space-x-1">
-            <label
-              htmlFor={`consumed-${foodItem.id}`}
-              className="text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Consumed
-            </label>
-            <Checkbox id={`consumed-${foodItem.id}`} />
-          </div>
+
+          {/* Checkbox field for consumption */}
+          <FormField
+            control={form.control}
+            name="consumed"
+            render={({ field }) => (
+              <div className="ml-1 flex items-center space-x-1">
+                <Label
+                  htmlFor={`consumed-${foodItem.id}`}
+                  className="text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Consumed
+                </Label>
+                <Checkbox
+                  id={`consumed-${foodItem.id}`}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </div>
+            )}
+          />
         </div>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
+        <div className="space-y-2">
+          {/* Calendar input for expiry date */}
+          <FormField
+            control={form.control}
+            name="expiryDate"
+            render={({ field }) => (
+              <div className="grid grid-cols-4 items-center">
+                <Label className="grid-cols-1">Expiry Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      // size="sm"
+                      className={cn(
+                        "col-span-3 ml-2 flex h-8 flex-1 font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      <span>
+                        {field.value
+                          ? format(field.value, "PP")
+                          : "Pick a date"}
+                      </span>
+                      <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          />
 
-        <Form {...form}>
-          <div className="space-y-2">
-            <FormField
-              control={form.control}
-              name="expiryDate"
-              render={({ field }) => (
-                <div className="flex items-center space-x-2">
-                  <Label>Expiry Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        size="sm"
-                        className={cn(
-                          "flex-1 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <div className="flex items-center space-x-2">
-                  <Label>Category</Label>
+          {/* Select dropdown for category field */}
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <div className="grid grid-cols-4 items-center">
+                <Label className="col-span-1">Category</Label>
+                <div className="col-span-3 ml-2">
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1091,53 +1106,55 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-            />
+              </div>
+            )}
+          />
 
-            <div className="flex space-x-2">
+          <div className="grid grid-cols-4 items-center">
+            <Label className="col-span-1">Quantity</Label>
+
+            <div className="col-span-3 ml-2 flex space-x-1">
+              {/* Numeric input for quantity */}
               <FormField
                 control={form.control}
                 name="quantity"
                 render={({ field }) => (
-                  <div className="flex items-center space-x-2">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      className="h-9 w-14 text-center"
-                      {...field}
-                    />
-                  </div>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    className="h-8 w-16 text-center"
+                    {...field}
+                  />
                 )}
               />
+
+              {/* Select field for unit */}
               <FormField
                 control={form.control}
                 name="unit"
                 render={({ field }) => (
-                  <div>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((unit, index) => (
-                          <SelectItem key={index} value={unit}>
-                            <span>{unit}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Select a unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit, index) => (
+                        <SelectItem key={index} value={unit}>
+                          <span>{unit}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               />
             </div>
           </div>
-        </Form>
-      </div>
-    </>
+        </div>
+      </Form>
+    </li>
   );
 };
 
