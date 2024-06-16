@@ -736,7 +736,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
       </div>
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
-        <h2 className="font-semibold">{foodItem.name}</h2>
+        <h2 className="font-semibold leading-none">{foodItem.name}</h2>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
@@ -898,7 +898,7 @@ const FoodItemDetails = ({
           </div>
 
           <div className="ml-4 flex flex-1 flex-col space-y-1.5">
-            <h2 className="font-semibold">{foodItem.name}</h2>
+            <h2 className="font-semibold leading-none">{foodItem.name}</h2>
             <p className="line-clamp-2 text-xs font-light text-zinc-700">
               {foodItem.description}
             </p>
@@ -1001,22 +1001,24 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
             }
           </AvatarFallback>
         </Avatar>
-        {isNewlyAdded && (
+        {/* {isNewlyAdded && (
           <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
-        )}
+        )} */}
       </div>
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">{foodItem.name}</h2>
-          <div className="flex items-center space-x-1">
+          <h2 className="line-clamp-1 font-semibold leading-none">
+            {foodItem.name} hot
+          </h2>
+          <div className="ml-1 flex items-center space-x-1">
             <label
               htmlFor={`consumed-${foodItem.id}`}
-              className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Consumed
             </label>
-            <Checkbox id={`consumed-${foodItem.id}`} className="h-5 w-5" />
+            <Checkbox id={`consumed-${foodItem.id}`} />
           </div>
         </div>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
