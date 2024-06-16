@@ -222,7 +222,9 @@ const PantryPage: NextPageWithLayout = () => {
           }}
         >
           <hgroup className="flex items-center justify-between text-white">
-            <h1 className="text-2xl">{initData?.user?.username}'s Pantry</h1>
+            <h1 className="text-2xl">
+              {initData?.user?.username ?? "User"}'s Pantry
+            </h1>
             <p>{totalFoodItemCount} items</p>
           </hgroup>
           <div className="mt-2 flex gap-x-2">
@@ -246,16 +248,16 @@ const PantryPage: NextPageWithLayout = () => {
                   onValueChange={onSortChange}
                 >
                   <DropdownMenuRadioItem value="created_at:desc">
-                    ✍️ Created (newest)
+                    ✍️ Newest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="created_at:asc">
-                    ✍️ Created (oldest)
+                    ✍️ Oldest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:desc">
-                    ⏳ Expiring (latest)
+                    ⏳ Expiring soon
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⏳ Expiring (soonest)
+                    ⏳ Expiring last
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
@@ -642,9 +644,9 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
             }
           </AvatarFallback>
         </Avatar>
-        {isNewlyAdded && (
+        {/* {isNewlyAdded && (
           <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
-        )}
+        )} */}
       </div>
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
@@ -857,7 +859,7 @@ const FoodItemDetails = ({
             <span className="mr-1">
               {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
             </span>
-            Mark as consumed
+            Consumed
           </Button>
           <Button
             variant="outline"
