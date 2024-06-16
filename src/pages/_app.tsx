@@ -2,12 +2,12 @@ import type { AppProps, AppType } from "next/app";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next";
 import { api } from "#/utils/api";
-import { Josefin_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "#/styles/globals.css";
 
 // set up font
-export const josefinSans = Josefin_Sans({
+export const josefinSans = Inter({
   subsets: ["latin"],
   variable: "--font-josefin",
 });

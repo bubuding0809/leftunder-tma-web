@@ -733,7 +733,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
       </div>
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
-        <h2 className="text-sm font-semibold">{foodItem.name}</h2>
+        <h2 className="font-semibold">{foodItem.name}</h2>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
@@ -895,7 +895,7 @@ const FoodItemDetails = ({
           </div>
 
           <div className="ml-4 flex flex-1 flex-col space-y-1.5">
-            <h2 className="text-sm font-semibold">{foodItem.name}</h2>
+            <h2 className="font-semibold">{foodItem.name}</h2>
             <p className="line-clamp-2 text-xs font-light text-zinc-700">
               {foodItem.description}
             </p>
