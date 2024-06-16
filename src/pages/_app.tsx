@@ -10,7 +10,6 @@ import "#/styles/globals.css";
 export const josefinSans = Josefin_Sans({
   subsets: ["latin"],
   variable: "--font-josefin",
-  weight: ["300", "400", "500", "600", "700"],
 });
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
@@ -34,7 +33,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <div className={``}>
+    <div className={`${josefinSans.variable} font-josefin`}>
       {getLayout(<Component {...pageProps} />)}
       <Toaster />
     </div>
