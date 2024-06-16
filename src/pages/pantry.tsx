@@ -248,16 +248,16 @@ const PantryPage: NextPageWithLayout = () => {
                   onValueChange={onSortChange}
                 >
                   <DropdownMenuRadioItem value="created_at:desc">
-                    ✍️ Newest first
+                    Newest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="created_at:asc">
                     ✍️ Oldest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:desc">
-                    ⏳ Expiring soon
+                    ⌛️ Expiring soon
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⌛️ Expiring last
+                    ⏳ Expiring last
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
@@ -651,7 +651,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
         <h2 className="text-sm font-semibold">{foodItem.name}</h2>
-        <p className="line-clamp-2 text-xs font-light text-zinc-500">
+        <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
         <Badge
@@ -813,7 +813,7 @@ const FoodItemDetails = ({
 
           <div className="ml-4 flex flex-1 flex-col space-y-1.5">
             <h2 className="text-sm font-semibold">{foodItem.name}</h2>
-            <p className="line-clamp-2 text-xs font-light text-zinc-500">
+            <p className="line-clamp-2 text-xs font-light text-zinc-700">
               {foodItem.description}
             </p>
             <Badge
@@ -925,7 +925,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
           <h2 className="text-sm font-semibold">{foodItem.name}</h2>
           <Checkbox />
         </div>
-        <p className="line-clamp-2 text-xs font-light text-zinc-500">
+        <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
 
