@@ -17,8 +17,7 @@ import {
   postEvent,
   on as onTmaEvent,
   off as offTmaEvent,
-  type MiniAppsEvents,
-  MiniAppsEventListener,
+  type MiniAppsEventListener,
 } from "@tma.js/sdk";
 import {
   ArrowUpDown,
@@ -30,7 +29,6 @@ import { Badge } from "#/components/ui/badge";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerTrigger,
@@ -240,6 +238,7 @@ const PantryPage: NextPageWithLayout = () => {
     if (checked) {
       // Enable main button for saving changes
       tmaMainButton?.setParams({
+        bgColor: "#1C5638",
         text: "Save changes",
         isEnabled: true,
         isVisible: true,
@@ -249,7 +248,14 @@ const PantryPage: NextPageWithLayout = () => {
         // TODO Save changes made to food items
         console.log("Saving changes...");
 
+        // Disable quick edit mode after saving changes
         setEditable(false);
+        tmaMainButton?.setParams({
+          text: "",
+          isEnabled: false,
+          isVisible: false,
+        });
+        tmaMainButton?.hide();
       });
     } else {
       // Ask if user wants to discard changes when quick edit is disabled
@@ -264,6 +270,7 @@ const PantryPage: NextPageWithLayout = () => {
             isEnabled: false,
             isVisible: false,
           });
+          tmaMainButton?.hide();
         }
 
         // unregister event listener after popup is closed
