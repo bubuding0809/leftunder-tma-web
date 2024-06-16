@@ -7,8 +7,19 @@ import { Separator } from "#/components/ui/separator";
 import { Switch } from "#/components/ui/switch";
 import { NextPageWithLayout, josefinSans } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
-import { useClosingBehavior, useInitData } from "@tma.js/sdk-react";
-import { postEvent } from "@tma.js/sdk";
+import {
+  useClosingBehavior,
+  useInitData,
+  useMainButton,
+  usePopup,
+} from "@tma.js/sdk-react";
+import {
+  postEvent,
+  on as onTmaEvent,
+  off as offTmaEvent,
+  type MiniAppsEvents,
+  MiniAppsEventListener,
+} from "@tma.js/sdk";
 import {
   ArrowUpDown,
   CalendarDays,
@@ -154,6 +165,8 @@ const units = [
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
   const tmaClosingBehavior = useClosingBehavior(true);
+  const tmaMainButton = useMainButton(true);
+  const tmaPopup = usePopup(true);
 
   // Enable confirmation dialog when closing the drawer to prevent accidental closing
   useEffect(() => {
@@ -214,6 +227,65 @@ const PantryPage: NextPageWithLayout = () => {
 
     const [field, direction] = value.split(":") as [string, "asc" | "desc"];
     setSort({ field, direction });
+  };
+
+  const onQuickEditToggle = (checked: boolean) => {
+    postEvent("web_app_trigger_haptic_feedback", {
+      type: "notification",
+      notification_type: "success",
+    });
+
+    setEditable(checked);
+
+    if (checked) {
+      // Enable main button for saving changes
+      tmaMainButton?.setParams({
+        text: "Save changes",
+        isEnabled: true,
+        isVisible: true,
+      });
+
+      tmaMainButton?.on("click", () => {
+        // TODO Save changes made to food items
+        console.log("Saving changes...");
+
+        setEditable(false);
+      });
+    } else {
+      // Ask if user wants to discard changes when quick edit is disabled
+      const onPopupClosed: MiniAppsEventListener<"popup_closed"> = ({
+        button_id,
+      }) => {
+        if (button_id === "cancel") return;
+        if (button_id === "ok") {
+          setEditable(false);
+          tmaMainButton?.setParams({
+            text: "",
+            isEnabled: false,
+            isVisible: false,
+          });
+        }
+
+        // unregister event listener after popup is closed
+        offTmaEvent("popup_closed", onPopupClosed);
+      };
+      onTmaEvent("popup_closed", onPopupClosed);
+
+      tmaPopup?.open({
+        title: "🫸 Discard changes?",
+        message: "Unsaved changes will be lost. Are you sure?",
+        buttons: [
+          {
+            type: "ok",
+            id: "ok",
+          },
+          {
+            type: "cancel",
+            id: "cancel",
+          },
+        ],
+      });
+    }
   };
 
   return (
@@ -320,7 +392,7 @@ const PantryPage: NextPageWithLayout = () => {
               <Switch
                 id="airplane-mode"
                 checked={editable}
-                onCheckedChange={setEditable}
+                onCheckedChange={onQuickEditToggle}
               />
               <Label htmlFor="airplane-mode">Quick edit</Label>
             </div>
