@@ -34,7 +34,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <div className={`${josefinSans.variable} font-josefin`}>
+    <div className={``}>
       {getLayout(<Component {...pageProps} />)}
       <Toaster />
     </div>
