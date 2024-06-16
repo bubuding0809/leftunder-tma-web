@@ -582,25 +582,33 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
     );
 
     const suffix = daysLeft > 0 ? "Left" : "Expired";
-    const absDaysLeft = Math.abs(daysLeft);
+    const absDayDelta = Math.abs(daysLeft);
+
+    if (absDayDelta === 0) {
+      return "Expiring Today";
+    }
+
+    if (absDayDelta === 1) {
+      return `1 Day ${suffix}`;
+    }
 
     // Return days if expiry date is less than 7 days
-    if (absDaysLeft < 7) {
-      return `${absDaysLeft} Days ${suffix}`;
+    if (absDayDelta < 7) {
+      return `${absDayDelta} Days ${suffix}`;
     }
 
     // Return weeks if expiry date is less than 30 days
-    if (absDaysLeft < 30) {
-      return `${Math.floor(absDaysLeft / 7)} Weeks ${suffix}`;
+    if (absDayDelta < 30) {
+      return `${Math.floor(absDayDelta / 7)} Weeks ${suffix}`;
     }
 
     // Return months if expiry date is less than 365 days
-    if (absDaysLeft < 365) {
-      return `${Math.floor(absDaysLeft / 30)} Months ${suffix}`;
+    if (absDayDelta < 365) {
+      return `${Math.floor(absDayDelta / 30)} Months ${suffix}`;
     }
 
     // Return years if expiry date is more than 365 days
-    return `${Math.floor(absDaysLeft / 365)} Years ${suffix}`;
+    return `${Math.floor(absDayDelta / 365)} Years ${suffix}`;
   }, [foodItem.expiry_date]);
 
   // Color code time to expiry
