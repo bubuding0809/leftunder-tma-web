@@ -101,6 +101,10 @@ const categories = [
     emoji: "🥤",
   },
   {
+    name: "Condiments",
+    emoji: "🍯",
+  },
+  {
     name: "Grains",
     emoji: "🍚",
   },
