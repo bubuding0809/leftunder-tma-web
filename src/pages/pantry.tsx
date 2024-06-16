@@ -306,7 +306,10 @@ const PantryPage: NextPageWithLayout = () => {
         >
           <hgroup className="flex items-center justify-between text-white">
             <h1 className="text-2xl">
-              {initData?.user?.username ?? "User"}'s Pantry
+              <span className="font-medium">
+                {initData?.user?.username ?? "User"}'s
+              </span>{" "}
+              pantry
             </h1>
             <p>{totalFoodItemCount} items</p>
           </hgroup>
