@@ -54,7 +54,7 @@ const config = {
         },
       },
       fontFamily: {
-        josefin: ["var(--font-josefin)", "sans"],
+        josefin: "var(--font-josefin)",
       },
       borderRadius: {
         lg: "var(--radius)",
