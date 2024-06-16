@@ -1005,7 +1005,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
         <div className="flex items-center justify-between ring-1">
-          <h2 className="text-sm font-semibold ring-1">{foodItem.name}</h2>
+          <h2 className="text-base font-semibold ring-1">{foodItem.name}</h2>
           <div className="flex items-center space-x-1 ring-1">
             <label
               htmlFor={`consumed-${foodItem.id}`}
