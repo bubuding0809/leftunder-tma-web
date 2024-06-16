@@ -254,11 +254,6 @@ const PantryPage: NextPageWithLayout = () => {
 
         // Disable quick edit mode after saving changes
         setEditable(false);
-        tmaMainButton?.setParams({
-          text: "",
-          isEnabled: false,
-          isVisible: false,
-        });
         tmaMainButton?.hide();
 
         // unregister event listener after main button is clicked
@@ -275,11 +270,6 @@ const PantryPage: NextPageWithLayout = () => {
         if (button_id === "cancel") return;
         if (button_id === "ok") {
           setEditable(false);
-          tmaMainButton?.setParams({
-            text: "",
-            isEnabled: false,
-            isVisible: false,
-          });
           tmaMainButton?.hide();
         }
 
