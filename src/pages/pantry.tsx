@@ -262,7 +262,10 @@ const PantryPage: NextPageWithLayout = () => {
       const onPopupClosed: MiniAppsEventListener<"popup_closed"> = ({
         button_id,
       }) => {
-        if (button_id === "cancel") return;
+        if (button_id === "cancel") {
+          setEditable(true);
+          return;
+        }
         if (button_id === "ok") {
           setEditable(false);
           tmaMainButton?.setParams({
