@@ -326,7 +326,7 @@ const PantryPage: NextPageWithLayout = () => {
                   <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52">
+              <DropdownMenuContent className="w-48">
                 <DropdownMenuLabel>Sort by</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup
@@ -334,7 +334,7 @@ const PantryPage: NextPageWithLayout = () => {
                   onValueChange={onSortChange}
                 >
                   <DropdownMenuRadioItem value="created_at:desc">
-                    Newest first
+                    ✍️ Newest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="created_at:asc">
                     ✍️ Oldest first
