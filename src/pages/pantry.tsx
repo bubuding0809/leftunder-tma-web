@@ -1005,15 +1005,17 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
 
       <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{foodItem.name}</h2>
-          <div className="flex items-center space-x-1 ring-1">
+          <h2 className="text-sm font-semibold leading-none">
+            {foodItem.name}
+          </h2>
+          <div className="flex items-center space-x-1">
             <label
-              htmlFor="check-consumed"
+              htmlFor={`consumed-${foodItem.id}`}
               className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Consumed
             </label>
-            <Checkbox id="check-consumed" className="h-5 w-5" />
+            <Checkbox id={`consumed-${foodItem.id}`} className="h-5 w-5" />
           </div>
         </div>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
