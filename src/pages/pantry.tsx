@@ -229,7 +229,7 @@ const PantryPage: NextPageWithLayout = () => {
           </hgroup>
           <div className="mt-2 flex gap-x-2">
             <Input
-              placeholder="Search Ingredients"
+              placeholder="🔍 Search by food name"
               className="text-[14px] placeholder:text-slate-400"
               value={liveSearch}
               onChange={(e) => setLiveSearch(e.target.value)}
