@@ -38,7 +38,7 @@ import { api } from "#/utils/api";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
 import { match } from "ts-pattern";
-import { differenceInHours, differenceInDays, format } from "date-fns";
+import { differenceInHours, differenceInDays, format, set } from "date-fns";
 import Spinner from "#/components/ui/spinner";
 import useDebounce from "#/hooks/useDebounce";
 import {
@@ -174,6 +174,11 @@ const PantryPage: NextPageWithLayout = () => {
     };
   }, [tmaClosingBehavior]);
 
+  // Hide main button on mount
+  useEffect(() => {
+    tmaMainButton?.hide();
+  }, [tmaMainButton]);
+
   const {
     debouncedValue: search,
     liveValue: liveSearch,
@@ -233,8 +238,6 @@ const PantryPage: NextPageWithLayout = () => {
       notification_type: "success",
     });
 
-    setEditable(checked);
-
     if (checked) {
       // Enable main button for saving changes
       tmaMainButton?.setParams({
@@ -244,7 +247,8 @@ const PantryPage: NextPageWithLayout = () => {
         isVisible: true,
       });
 
-      tmaMainButton?.on("click", () => {
+      // Enable save changes button on main button click
+      const onMainButtonClicked = () => {
         // TODO Save changes made to food items
         console.log("Saving changes...");
 
@@ -256,16 +260,19 @@ const PantryPage: NextPageWithLayout = () => {
           isVisible: false,
         });
         tmaMainButton?.hide();
-      });
+
+        // unregister event listener after main button is clicked
+        tmaMainButton?.off("click", onMainButtonClicked);
+      };
+      tmaMainButton?.on("click", onMainButtonClicked);
+
+      setEditable(true);
     } else {
       // Ask if user wants to discard changes when quick edit is disabled
       const onPopupClosed: MiniAppsEventListener<"popup_closed"> = ({
         button_id,
       }) => {
-        if (button_id === "cancel") {
-          setEditable(true);
-          return;
-        }
+        if (button_id === "cancel") return;
         if (button_id === "ok") {
           setEditable(false);
           tmaMainButton?.setParams({
