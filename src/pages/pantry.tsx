@@ -82,6 +82,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
+import Image from "next/image";
 
 // TODO: Replace with actual data
 const categories = [
@@ -340,10 +341,10 @@ const PantryPage: NextPageWithLayout = () => {
                     ✍️ Oldest first
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:desc">
-                    ⌛️ Expiring soon
+                    ⏳ Expiring last
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⏳ Expiring last
+                    ⌛️ Expiring soon
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
@@ -595,7 +596,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
             <SwipeableListItem
               key={foodItem.id}
               trailingActions={deleteItemAction(foodItem.id)}
-              className="flex w-full rounded-md border bg-white p-4 shadow"
+              className="flex w-full rounded-md border bg-white p-3 shadow"
             >
               <FoodItemCard foodItem={foodItem} />
             </SwipeableListItem>
@@ -715,22 +716,17 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
 
   return (
     <>
-      <div className="relative flex h-min self-start">
-        <Avatar className="relative">
-          <AvatarImage src={foodItem?.image_url ?? ""} />
-          <AvatarFallback>
-            {
-              categories.find((category) => category.name === foodItem.category)
-                ?.emoji
-            }
-          </AvatarFallback>
-        </Avatar>
-        {/* {isNewlyAdded && (
-          <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
-        )} */}
+      <div className="relative flex self-start">
+        <Image
+          src={foodItem?.image_url ?? ""}
+          alt={foodItem.name}
+          className="aspect-square rounded object-cover"
+          width="80"
+          height="80"
+        />
       </div>
 
-      <div className="ml-4 flex flex-1 flex-col space-y-1.5 self-start">
+      <div className="ml-3 flex flex-1 flex-col space-y-2 self-start">
         <h2 className="font-semibold leading-none">{foodItem.name}</h2>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
@@ -755,7 +751,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
           </span>{" "}
           |{" "}
           <span>
-            {foodItem.quantity.toString()} {foodItem.unit} left
+            {foodItem.quantity.toString()} {foodItem.unit}
           </span>
         </p>
       </div>
@@ -868,45 +864,46 @@ const FoodItemDetails = ({
       <DrawerTrigger asChild>
         <Button
           size="icon"
-          variant="outline"
-          className="ml-4 self-start rounded-full"
+          variant="ghost"
+          className="ml-2 h-8 w-8 self-start rounded-full"
         >
-          <ChevronRight className="h-4 w-4" strokeWidth={2} />
+          <ChevronRight className="h-4 w-4" strokeWidth={3} />
         </Button>
       </DrawerTrigger>
       <DrawerContent className={cn(josefinSans.className)}>
-        <div className="flex p-6">
-          <div className="relative flex h-min">
-            <Avatar className="relative">
-              <AvatarImage src={foodItem?.image_url ?? ""} />
-              <AvatarFallback>
-                {
-                  categories.find(
-                    (category) => category.name === foodItem.category,
-                  )?.emoji
-                }
-              </AvatarFallback>
-            </Avatar>
-            {isNewlyAdded && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
-            )}
-          </div>
-
-          <div className="ml-4 flex flex-1 flex-col space-y-1.5">
-            <h2 className="font-semibold leading-none">{foodItem.name}</h2>
-            <p className="line-clamp-2 text-xs font-light text-zinc-700">
-              {foodItem.description}
-            </p>
+        <div className="flex flex-col px-4 py-3">
+          <div className="relative">
+            <img
+              src={foodItem?.image_url ?? ""}
+              alt={foodItem.name}
+              className="aspect-video rounded object-cover shadow"
+            />
             <Badge
               variant="default"
               className={cn(
-                "flex w-fit items-center rounded pl-2 text-xs font-normal text-white",
+                "absolute bottom-2 left-2 flex items-center rounded pl-2 text-xs font-normal text-white",
                 timeToExpiryColor,
               )}
             >
               <CalendarDays className="h-4 w-4" strokeWidth={2} />
               <span className="ml-2 text-nowrap">{timeToExpiry}</span>
             </Badge>
+          </div>
+
+          <div className="flex flex-1 flex-col space-y-2 px-1 pt-4">
+            <div className="flex items-center">
+              <h2 className="font-semibold">{foodItem.name}</h2>
+              <Button
+                size="sm"
+                variant="link"
+                className="ml-auto h-4 w-min text-xs"
+              >
+                ✏️ Edit
+              </Button>
+            </div>
+            <p className="line-clamp-2 text-xs font-light text-zinc-700">
+              {foodItem.description}
+            </p>
             <p className="text-xs text-zinc-500">
               <span>
                 {
@@ -918,7 +915,7 @@ const FoodItemDetails = ({
               </span>{" "}
               |{" "}
               <span>
-                {foodItem.quantity.toString()} {foodItem.unit} left
+                {foodItem.quantity.toString()} {foodItem.unit}
               </span>
             </p>
             <div className="flex flex-col space-y-2 pt-3 text-xs">
@@ -1011,7 +1008,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
         )} */}
       </div>
 
-      <Form {...form} className="ml-4 flex flex-1 flex-col space-y-1.5">
+      <Form {...form} className="ml-3 flex flex-1 flex-col space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="line-clamp-1 font-semibold leading-none">
             {foodItem.name}
@@ -1064,7 +1061,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
                           ? format(field.value, "PP")
                           : "Pick a date"}
                       </span>
-                      <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1113,7 +1110,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
           <div className="grid grid-cols-4 items-center">
             <Label className="col-span-1">Quantity</Label>
 
-            <div className="col-span-3 ml-2 flex space-x-1">
+            <div className="col-span-3 ml-2 flex space-x-1.5">
               {/* Numeric input for quantity */}
               <FormField
                 control={form.control}
