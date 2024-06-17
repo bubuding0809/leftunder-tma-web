@@ -23,6 +23,14 @@ const config = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "fprskgybcquiadthlkly.supabase.co",
+      },
+    ],
+  },
 };
 
 export default config;
