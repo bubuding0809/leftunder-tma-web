@@ -1138,7 +1138,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
                       <SelectValue placeholder="Select a unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {units.map((unit, index) => (
+                      {[...units, field.value].map((unit, index) => (
                         <SelectItem key={index} value={unit}>
                           <span>{unit}</span>
                         </SelectItem>
