@@ -83,6 +83,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import Image from "next/image";
+import { foodItemFormSchema } from "#/schema/food-item-schema";
 
 // TODO: Replace with actual data
 const categories = [
@@ -167,6 +168,11 @@ const PantryPage: NextPageWithLayout = () => {
   const tmaMainButton = useMainButton(true);
   const tmaPopup = usePopup(true);
 
+  const [editable, setEditable] = useState(false);
+  const [editedFoodItemForms, setEditedFoodItemForms] = useState<
+    Record<string, z.infer<typeof foodItemFormSchema>>
+  >({});
+
   // Enable confirmation dialog when closing the drawer to prevent accidental closing
   useEffect(() => {
     tmaClosingBehavior?.enableConfirmation();
@@ -175,10 +181,30 @@ const PantryPage: NextPageWithLayout = () => {
     };
   }, [tmaClosingBehavior]);
 
-  // Hide main button on mount
+  // Enable main button for saving changes
   useEffect(() => {
-    tmaMainButton?.hide();
-  }, [tmaMainButton]);
+    tmaMainButton?.setParams({
+      bgColor: "#1C5638",
+      text: "Save changes",
+    });
+
+    // Enable save changes button on main button click
+    const onMainButtonClicked = () => {
+      // TODO Save changes made to food items
+      console.log("Saving changes", editedFoodItemForms);
+
+      setEditedFoodItemForms({});
+      setEditable(false);
+    };
+    tmaMainButton?.on("click", onMainButtonClicked);
+
+    // Show main button only when quick edit mode is enabled
+    editable ? tmaMainButton?.show() : tmaMainButton?.hide();
+
+    return () => {
+      tmaMainButton?.off("click", onMainButtonClicked);
+    };
+  }, [tmaMainButton, editedFoodItemForms, editable]);
 
   const {
     debouncedValue: search,
@@ -195,7 +221,6 @@ const PantryPage: NextPageWithLayout = () => {
     field: "created_at",
     direction: "desc",
   });
-  const [editable, setEditable] = useState(false);
 
   // TRPC query to get filtered food items
   const foodItemsQuery = api.foodItem.getFilteredFoodItems.useQuery(
@@ -240,28 +265,6 @@ const PantryPage: NextPageWithLayout = () => {
     });
 
     if (checked) {
-      // Enable main button for saving changes
-      tmaMainButton?.setParams({
-        bgColor: "#1C5638",
-        text: "Save changes",
-        isEnabled: true,
-        isVisible: true,
-      });
-
-      // Enable save changes button on main button click
-      const onMainButtonClicked = () => {
-        // TODO Save changes made to food items
-        console.log("Saving changes...");
-
-        // Disable quick edit mode after saving changes
-        setEditable(false);
-        tmaMainButton?.hide();
-
-        // unregister event listener after main button is clicked
-        tmaMainButton?.off("click", onMainButtonClicked);
-      };
-      tmaMainButton?.on("click", onMainButtonClicked);
-
       setEditable(true);
     } else {
       // Ask if user wants to discard changes when quick edit is disabled
@@ -420,7 +423,13 @@ const PantryPage: NextPageWithLayout = () => {
           {
             status: "success",
           },
-          ({ data }) => <FoodItemsList foodItems={data} editable={editable} />,
+          ({ data }) => (
+            <FoodItemsList
+              foodItems={data}
+              editable={editable}
+              setEditedFoodItemForms={setEditedFoodItemForms}
+            />
+          ),
         )
         .with(
           {
@@ -472,8 +481,15 @@ const onSendToast = (
 interface FoodItemsListProps {
   foodItems: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"];
   editable: boolean;
+  setEditedFoodItemForms: Dispatch<
+    SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
+  >;
 }
-const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
+const FoodItemsList = ({
+  foodItems,
+  editable,
+  setEditedFoodItemForms,
+}: FoodItemsListProps) => {
   const queryClient = api.useUtils();
   const updateConsumeStatusMutation =
     api.foodItem.updateConsumeStatus.useMutation({
@@ -490,7 +506,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
       },
     });
 
-  const deleteItemAction = (foodItemId: string) => {
+  const trailingSwipeActions = (foodItemId: string) => {
     return (
       <TrailingActions>
         {/* Mark food as deleted */}
@@ -578,24 +594,29 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
 
   return (
     <>
+      {/* Show food edit cards if quick edit mode is enabled */}
       {editable && foodItems.length > 0 && (
         <ul className="flex flex-col space-y-3 p-4">
           {foodItems.map((foodItem) => (
-            <FoodItemEditCard foodItem={foodItem} />
+            <FoodItemEditCard
+              foodItem={foodItem}
+              setEditedFoodItemForms={setEditedFoodItemForms}
+            />
           ))}
         </ul>
       )}
 
+      {/* Show food item cards if quick edit mode is disabled */}
       {!editable && foodItems.length > 0 && (
         <SwipeableList
           className="space-y-3 p-4"
           type={Type.IOS}
-          destructiveCallbackDelay={100}
+          destructiveCallbackDelay={250}
         >
           {foodItems.map((foodItem) => (
             <SwipeableListItem
               key={foodItem.id}
-              trailingActions={deleteItemAction(foodItem.id)}
+              trailingActions={trailingSwipeActions(foodItem.id)}
               className="flex w-full rounded-md border bg-white p-3 shadow"
             >
               <FoodItemCard foodItem={foodItem} />
@@ -604,6 +625,7 @@ const FoodItemsList = ({ foodItems, editable }: FoodItemsListProps) => {
         </SwipeableList>
       )}
 
+      {/* Show empty state when pantry is empty */}
       {foodItems.length === 0 && <FoodItemsEmpty />}
     </>
   );
@@ -956,18 +978,17 @@ const FoodItemDetails = ({
   );
 };
 
-const foodItemFormSchema = z.object({
-  expiryDate: z.date(),
-  category: z.string(),
-  quantity: z.number(),
-  unit: z.string(),
-  consumed: z.boolean(),
-});
-
 interface FoodItemEditCardProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
+  setEditedFoodItemForms: Dispatch<
+    SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
+  >;
 }
-const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
+const FoodItemEditCard = ({
+  foodItem,
+  setEditedFoodItemForms,
+}: FoodItemEditCardProps) => {
+  const tmaMainButton = useMainButton(true);
   // Consider food as newly added if it was added in the last 12 hours
   const isNewlyAdded =
     Math.abs(differenceInHours(new Date(), new Date(foodItem.created_at))) < 12;
@@ -975,6 +996,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
   const form = useForm<z.infer<typeof foodItemFormSchema>>({
     resolver: zodResolver(foodItemFormSchema),
     defaultValues: {
+      id: foodItem.id,
       expiryDate: new Date(foodItem.expiry_date ?? ""),
       category: foodItem.category,
       quantity: parseInt(foodItem.quantity.toString()),
@@ -991,6 +1013,21 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
     }
     return [...units, unitField];
   }, [unitField, units]);
+
+  // Update edited food item forms when form values change
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      const parsedValues = foodItemFormSchema.parse(values);
+      setEditedFoodItemForms((prev) => ({
+        ...prev,
+        [foodItem.id]: parsedValues,
+      }));
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <li
