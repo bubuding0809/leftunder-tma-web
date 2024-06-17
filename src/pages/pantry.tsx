@@ -984,6 +984,13 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
   });
 
   const checkedForConsumed = form.watch("consumed");
+  const unitField = form.watch("unit");
+  const unitOptions = useMemo(() => {
+    if (units.includes(unitField)) {
+      return units;
+    }
+    return [...units, unitField];
+  }, [unitField, units]);
 
   return (
     <li
@@ -1138,7 +1145,7 @@ const FoodItemEditCard = ({ foodItem }: FoodItemEditCardProps) => {
                       <SelectValue placeholder="Select a unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[...units, field.value].map((unit, index) => (
+                      {unitOptions.map((unit, index) => (
                         <SelectItem key={index} value={unit}>
                           <span>{unit}</span>
                         </SelectItem>
