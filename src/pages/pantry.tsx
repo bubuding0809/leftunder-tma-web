@@ -895,10 +895,10 @@ const FoodItemDetails = ({
               <h2 className="font-semibold">{foodItem.name}</h2>
               <Button
                 size="sm"
-                variant="link"
-                className="ml-auto h-4 w-min text-xs"
+                variant="outline"
+                className="ml-auto h-6 w-min px-2 text-xs"
               >
-                ✏️ Edit
+                <span className="mr-1.5">✏️</span> Edit
               </Button>
             </div>
             <p className="line-clamp-2 text-xs font-light text-zinc-700">
