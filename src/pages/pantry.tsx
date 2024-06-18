@@ -1108,6 +1108,7 @@ const FoodItemEditCard = ({
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      defaultMonth={field.value}
                     />
                   </PopoverContent>
                 </Popover>
