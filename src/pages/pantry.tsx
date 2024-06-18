@@ -749,6 +749,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
     <>
       <div className="relative flex self-start">
         <img
+          loading="lazy"
           src={foodItem?.image_url ?? ""}
           alt={foodItem.name}
           className="aspect-square h-28 w-20 rounded object-cover"
@@ -902,7 +903,7 @@ const FoodItemDetails = ({
             <img
               src={foodItem?.image_url ?? ""}
               alt={foodItem.name}
-              className="aspect-video rounded object-cover shadow"
+              className="aspect-video rounded object-contain shadow"
             />
             <Badge
               variant="default"
