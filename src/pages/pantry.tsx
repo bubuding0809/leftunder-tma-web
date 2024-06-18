@@ -121,7 +121,7 @@ const categories = [
   },
   {
     name: "Frozen Food",
-    emoji: "🍦",
+    emoji: "🧊",
   },
   {
     name: "Canned Food",
@@ -168,44 +168,6 @@ const PantryPage: NextPageWithLayout = () => {
   const tmaMainButton = useMainButton(true);
   const tmaPopup = usePopup(true);
 
-  const [editable, setEditable] = useState(false);
-  const [editedFoodItemForms, setEditedFoodItemForms] = useState<
-    Record<string, z.infer<typeof foodItemFormSchema>>
-  >({});
-
-  // Enable confirmation dialog when closing the drawer to prevent accidental closing
-  useEffect(() => {
-    tmaClosingBehavior?.enableConfirmation();
-    return () => {
-      tmaClosingBehavior?.disableConfirmation();
-    };
-  }, [tmaClosingBehavior]);
-
-  // Enable main button for saving changes
-  useEffect(() => {
-    tmaMainButton?.setParams({
-      bgColor: "#1C5638",
-      text: "Save changes",
-    });
-
-    // Enable save changes button on main button click
-    const onMainButtonClicked = () => {
-      // TODO Save changes made to food items
-      console.log("Saving changes", editedFoodItemForms);
-
-      setEditedFoodItemForms({});
-      setEditable(false);
-    };
-    tmaMainButton?.on("click", onMainButtonClicked);
-
-    // Show main button only when quick edit mode is enabled
-    editable ? tmaMainButton?.show() : tmaMainButton?.hide();
-
-    return () => {
-      tmaMainButton?.off("click", onMainButtonClicked);
-    };
-  }, [tmaMainButton, editedFoodItemForms, editable]);
-
   const {
     debouncedValue: search,
     liveValue: liveSearch,
@@ -221,6 +183,9 @@ const PantryPage: NextPageWithLayout = () => {
     field: "created_at",
     direction: "desc",
   });
+
+  // TRPC queryContext to access query cache
+  const queryClient = api.useUtils();
 
   // TRPC query to get filtered food items
   const foodItemsQuery = api.foodItem.getFilteredFoodItems.useQuery(
@@ -247,6 +212,53 @@ const PantryPage: NextPageWithLayout = () => {
         enabled: !!initData?.user?.id,
       },
     );
+
+  // TRPC mutation to update many food items' details for quick edit mode
+  const updateManyFoodItemDetailsMutation =
+    api.foodItem.updateManyFoodItemDetails.useMutation({
+      onSuccess: () => {
+        queryClient.foodItem.getFilteredFoodItems.invalidate();
+      },
+    });
+
+  const [editable, setEditable] = useState(false);
+  const [editedFoodItemForms, setEditedFoodItemForms] = useState<
+    Record<string, z.infer<typeof foodItemFormSchema>>
+  >({});
+
+  // Enable confirmation dialog when closing the drawer to prevent accidental closing
+  useEffect(() => {
+    tmaClosingBehavior?.enableConfirmation();
+    return () => {
+      tmaClosingBehavior?.disableConfirmation();
+    };
+  }, [tmaClosingBehavior]);
+
+  // Enable main button for saving changes
+  useEffect(() => {
+    tmaMainButton?.setParams({
+      bgColor: "#1C5638",
+      text: "Save changes",
+    });
+
+    // Enable save changes button on main button click
+    const onMainButtonClicked = () => {
+      updateManyFoodItemDetailsMutation.mutate({
+        foodItems: Object.values(editedFoodItemForms),
+      });
+
+      setEditedFoodItemForms({});
+      setEditable(false);
+    };
+    tmaMainButton?.on("click", onMainButtonClicked);
+
+    // Show main button only when quick edit mode is enabled
+    editable ? tmaMainButton?.show() : tmaMainButton?.hide();
+
+    return () => {
+      tmaMainButton?.off("click", onMainButtonClicked);
+    };
+  }, [tmaMainButton, editedFoodItemForms, editable]);
 
   const onSortChange = (value: string) => {
     postEvent("web_app_trigger_haptic_feedback", {
@@ -988,7 +1000,6 @@ const FoodItemEditCard = ({
   foodItem,
   setEditedFoodItemForms,
 }: FoodItemEditCardProps) => {
-  const tmaMainButton = useMainButton(true);
   // Consider food as newly added if it was added in the last 12 hours
   const isNewlyAdded =
     Math.abs(differenceInHours(new Date(), new Date(foodItem.created_at))) < 12;
@@ -999,7 +1010,7 @@ const FoodItemEditCard = ({
       id: foodItem.id,
       expiryDate: new Date(foodItem.expiry_date ?? ""),
       category: foodItem.category,
-      quantity: parseInt(foodItem.quantity.toString()),
+      quantity: Number(foodItem.quantity),
       unit: foodItem.unit,
       consumed: false,
     },
@@ -1159,11 +1170,16 @@ const FoodItemEditCard = ({
               <FormField
                 control={form.control}
                 name="quantity"
-                render={({ field }) => (
+                render={({ field: { onChange, ...field } }) => (
                   <Input
+                    className="h-8 w-16 text-center"
                     type="number"
                     inputMode="decimal"
-                    className="h-8 w-16 text-center"
+                    min={0}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      onChange(value);
+                    }}
                     {...field}
                   />
                 )}
