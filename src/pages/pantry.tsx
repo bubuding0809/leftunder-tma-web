@@ -695,10 +695,6 @@ const FoodItemCard = ({
 }: FoodItemCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Consider food as newly added if it was added in the last 12 hours
-  const isNewlyAdded =
-    Math.abs(differenceInHours(new Date(), new Date(foodItem.created_at))) < 12;
-
   // Calculate time to expiry
   const timeToExpiry = useMemo(() => {
     const daysLeft = differenceInDays(
@@ -756,7 +752,7 @@ const FoodItemCard = ({
   }, [timeToExpiry]);
 
   return editable ? (
-    <FoodItemEditCard
+    <FoodItemEditMode
       foodItem={foodItem}
       setEditedFoodItemForms={setEditedFoodItemForms}
     />
@@ -808,7 +804,6 @@ const FoodItemCard = ({
         foodItem={foodItem}
         timeToExpiry={timeToExpiry}
         timeToExpiryColor={timeToExpiryColor}
-        isNewlyAdded={isNewlyAdded}
       />
     </div>
   );
@@ -818,7 +813,6 @@ interface FoodItemDetailsProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
-  isNewlyAdded: boolean;
   timeToExpiry: string;
   timeToExpiryColor: string;
 }
@@ -826,7 +820,6 @@ const FoodItemDetails = ({
   open,
   setOpen,
   foodItem,
-  isNewlyAdded,
   timeToExpiry,
   timeToExpiryColor,
 }: FoodItemDetailsProps) => {
@@ -1002,20 +995,16 @@ const FoodItemDetails = ({
   );
 };
 
-interface FoodItemEditCardProps {
+interface FoodItemEditModeProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
   setEditedFoodItemForms: Dispatch<
     SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
   >;
 }
-const FoodItemEditCard = ({
+const FoodItemEditMode = ({
   foodItem,
   setEditedFoodItemForms,
-}: FoodItemEditCardProps) => {
-  // Consider food as newly added if it was added in the last 12 hours
-  const isNewlyAdded =
-    Math.abs(differenceInHours(new Date(), new Date(foodItem.created_at))) < 12;
-
+}: FoodItemEditModeProps) => {
   const form = useForm<z.infer<typeof foodItemFormSchema>>({
     resolver: zodResolver(foodItemFormSchema),
     defaultValues: {
@@ -1064,9 +1053,6 @@ const FoodItemEditCard = ({
             }
           </AvatarFallback>
         </Avatar>
-        {/* {isNewlyAdded && (
-          <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border border-white bg-[#FD9F01]" />
-        )} */}
       </div>
 
       <Form {...form} className="ml-3 flex flex-1 flex-col space-y-2">
