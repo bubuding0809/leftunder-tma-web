@@ -1161,6 +1161,7 @@ const FoodItemEditCard = ({
                     min={0}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
+                      if (isNaN(value)) return onChange(0);
                       onChange(value);
                     }}
                     {...field}
