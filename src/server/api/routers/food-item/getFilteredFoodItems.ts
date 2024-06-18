@@ -54,8 +54,13 @@ export const getFilteredFoodItems = publicProcedure
           ? { in: category, mode: "insensitive" }
           : undefined,
       },
-      orderBy: {
-        [field]: direction,
-      },
+      orderBy: [
+        {
+          [field]: direction,
+        },
+        {
+          name: "asc",
+        },
+      ],
     });
   });

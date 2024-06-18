@@ -243,9 +243,26 @@ const PantryPage: NextPageWithLayout = () => {
 
     // Enable save changes button on main button click
     const onMainButtonClicked = () => {
-      updateManyFoodItemDetailsMutation.mutate({
-        foodItems: Object.values(editedFoodItemForms),
-      });
+      toast.promise(
+        updateManyFoodItemDetailsMutation.mutateAsync({
+          foodItems: Object.values(editedFoodItemForms),
+        }),
+        {
+          loading: "Saving changes...",
+          success: "Changes saved successfully",
+          error: "Failed to save changes",
+        },
+        {
+          className: "text-xs font-medium",
+          position: "top-right",
+          style: {
+            paddingBlock: "1rem",
+          },
+          success: {
+            icon: "🎉",
+          },
+        },
+      );
 
       setEditedFoodItemForms({});
       setEditable(false);
@@ -463,8 +480,9 @@ const PantryPage: NextPageWithLayout = () => {
 const onSendToast = (
   message: string,
   actionLabel: string,
-  duration: number = 3000,
   onAction: (t: Toast) => void,
+  icon: string = "🎉",
+  duration: number = 3000,
 ) => {
   toast(
     (t) => (
@@ -483,8 +501,8 @@ const onSendToast = (
       </span>
     ),
     {
-      duration: duration,
-      icon: "🚨",
+      duration,
+      icon,
       position: "top-right",
     },
   );
@@ -534,23 +552,18 @@ const FoodItemsList = ({
               {
                 onSuccess: () => {
                   // Show toast notification to allow user to undo the action
-                  onSendToast(
-                    "Food item deleted successfully",
-                    "Undo",
-                    3000,
-                    (t) => {
-                      postEvent("web_app_trigger_haptic_feedback", {
-                        type: "notification",
-                        notification_type: "success",
-                      });
-                      updateDeleteStatusMutation
-                        .mutateAsync({
-                          foodItemId: foodItemId,
-                          deleted: false,
-                        })
-                        .then(() => toast.dismiss(t.id));
-                    },
-                  );
+                  onSendToast("Food item deleted successfully", "Undo", (t) => {
+                    postEvent("web_app_trigger_haptic_feedback", {
+                      type: "notification",
+                      notification_type: "success",
+                    });
+                    updateDeleteStatusMutation
+                      .mutateAsync({
+                        foodItemId: foodItemId,
+                        deleted: false,
+                      })
+                      .then(() => toast.dismiss(t.id));
+                  });
                 },
               },
             );
@@ -574,23 +587,18 @@ const FoodItemsList = ({
               {
                 onSuccess: () => {
                   // Show toast notification to allow user to undo the action
-                  onSendToast(
-                    "Food item marked as consumed",
-                    "Undo",
-                    3000,
-                    (t) => {
-                      postEvent("web_app_trigger_haptic_feedback", {
-                        type: "notification",
-                        notification_type: "success",
-                      });
-                      updateConsumeStatusMutation
-                        .mutateAsync({
-                          foodItemId: foodItemId,
-                          consumed: false,
-                        })
-                        .then(() => toast.dismiss(t.id));
-                    },
-                  );
+                  onSendToast("Food item marked as consumed", "Undo", (t) => {
+                    postEvent("web_app_trigger_haptic_feedback", {
+                      type: "notification",
+                      notification_type: "success",
+                    });
+                    updateConsumeStatusMutation
+                      .mutateAsync({
+                        foodItemId: foodItemId,
+                        consumed: false,
+                      })
+                      .then(() => toast.dismiss(t.id));
+                  });
                 },
               },
             );
@@ -849,7 +857,7 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item marked as consumed", "Undo", 3000, (t) => {
+          onSendToast("Food item marked as consumed", "Undo", (t) => {
             postEvent("web_app_trigger_haptic_feedback", {
               type: "notification",
               notification_type: "success",
@@ -876,7 +884,7 @@ const FoodItemDetails = ({
       {
         onSuccess: () => {
           // Show toast notification to allow user to undo the action
-          onSendToast("Food item deleted successfully", "Undo", 3000, (t) => {
+          onSendToast("Food item deleted successfully", "Undo", (t) => {
             postEvent("web_app_trigger_haptic_feedback", {
               type: "notification",
               notification_type: "success",
