@@ -625,7 +625,7 @@ const FoodItemsList = ({
           <SwipeableListItem
             key={foodItem.id}
             trailingActions={trailingSwipeActions(foodItem.id)}
-            className="w-full rounded-md border bg-white p-3 shadow"
+            className="w-full rounded-md border bg-white p-2 shadow"
           >
             {editable ? (
               <FoodItemEditCard
@@ -752,7 +752,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
           loading="lazy"
           src={foodItem?.image_url ?? ""}
           alt={foodItem.name}
-          className="aspect-square h-28 w-20 rounded object-cover"
+          className="aspect-square h-28 w-28 rounded object-cover"
         />
       </div>
 
