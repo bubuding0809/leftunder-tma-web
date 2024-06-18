@@ -239,6 +239,7 @@ const PantryPage: NextPageWithLayout = () => {
     tmaMainButton?.setParams({
       bgColor: "#1C5638",
       text: "Save changes",
+      isEnabled: true,
     });
 
     // Enable save changes button on main button click
@@ -327,6 +328,8 @@ const PantryPage: NextPageWithLayout = () => {
       });
     }
   };
+
+  console.log(editable);
 
   return (
     <div className="relative">
@@ -612,43 +615,31 @@ const FoodItemsList = ({
     );
   };
 
-  return (
-    <>
-      {/* Show food edit cards if quick edit mode is enabled */}
-      {editable && foodItems.length > 0 && (
-        <ul className="flex flex-col space-y-3 p-4">
-          {foodItems.map((foodItem) => (
-            <FoodItemEditCard
+  if (foodItems.length > 0) {
+    return (
+      <SwipeableList
+        className="space-y-3 p-4"
+        type={Type.IOS}
+        destructiveCallbackDelay={250}
+      >
+        {foodItems.map((foodItem) => (
+          <SwipeableListItem
+            key={foodItem.id}
+            trailingActions={trailingSwipeActions(foodItem.id)}
+            className="w-full rounded-md border bg-white p-3 shadow"
+          >
+            <FoodItemCard
               foodItem={foodItem}
+              editable={editable}
               setEditedFoodItemForms={setEditedFoodItemForms}
             />
-          ))}
-        </ul>
-      )}
+          </SwipeableListItem>
+        ))}
+      </SwipeableList>
+    );
+  }
 
-      {/* Show food item cards if quick edit mode is disabled */}
-      {!editable && foodItems.length > 0 && (
-        <SwipeableList
-          className="space-y-3 p-4"
-          type={Type.IOS}
-          destructiveCallbackDelay={250}
-        >
-          {foodItems.map((foodItem) => (
-            <SwipeableListItem
-              key={foodItem.id}
-              trailingActions={trailingSwipeActions(foodItem.id)}
-              className="flex w-full rounded-md border bg-white p-3 shadow"
-            >
-              <FoodItemCard foodItem={foodItem} />
-            </SwipeableListItem>
-          ))}
-        </SwipeableList>
-      )}
-
-      {/* Show empty state when pantry is empty */}
-      {foodItems.length === 0 && <FoodItemsEmpty />}
-    </>
-  );
+  return <FoodItemsEmpty />;
 };
 
 const FoodItemsLoading = () => {
@@ -692,8 +683,16 @@ const FoodItemsEmpty = () => {
 
 interface FoodItemCardProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
+  editable: boolean;
+  setEditedFoodItemForms: Dispatch<
+    SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
+  >;
 }
-const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
+const FoodItemCard = ({
+  foodItem,
+  editable,
+  setEditedFoodItemForms,
+}: FoodItemCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Consider food as newly added if it was added in the last 12 hours
@@ -756,8 +755,13 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
       .otherwise(() => "bg-green-600");
   }, [timeToExpiry]);
 
-  return (
-    <>
+  return editable ? (
+    <FoodItemEditCard
+      foodItem={foodItem}
+      setEditedFoodItemForms={setEditedFoodItemForms}
+    />
+  ) : (
+    <div className="flex w-full">
       <div className="relative flex self-start">
         <Image
           src={foodItem?.image_url ?? ""}
@@ -806,7 +810,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         timeToExpiryColor={timeToExpiryColor}
         isNewlyAdded={isNewlyAdded}
       />
-    </>
+    </div>
   );
 };
 
@@ -1049,13 +1053,7 @@ const FoodItemEditCard = ({
   }, []);
 
   return (
-    <li
-      key={foodItem.id}
-      className={cn(
-        "flex w-full rounded-md border bg-white p-4 shadow",
-        checkedForConsumed && "ring-2 ring-primary ring-offset-2",
-      )}
-    >
+    <div className="flex w-full">
       <div className="relative flex h-min self-start">
         <Avatar className="relative">
           <AvatarImage src={foodItem?.image_url ?? ""} />
@@ -1085,7 +1083,12 @@ const FoodItemEditCard = ({
               <div className="ml-1 flex items-center space-x-1">
                 <Label
                   htmlFor={`consumed-${foodItem.id}`}
-                  className="text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className={cn(
+                    "text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                    checkedForConsumed
+                      ? "text-primary"
+                      : "text-muted-foreground",
+                  )}
                 >
                   Consumed
                 </Label>
@@ -1219,7 +1222,7 @@ const FoodItemEditCard = ({
           </div>
         </div>
       </Form>
-    </li>
+    </div>
   );
 };
 
