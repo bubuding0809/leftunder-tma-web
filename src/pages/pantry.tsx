@@ -38,7 +38,7 @@ import { api } from "#/utils/api";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
 import { match } from "ts-pattern";
-import { differenceInHours, differenceInDays, format, set } from "date-fns";
+import { differenceInDays, format, set } from "date-fns";
 import Spinner from "#/components/ui/spinner";
 import useDebounce from "#/hooks/useDebounce";
 import {
@@ -82,7 +82,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import Image from "next/image";
 import { foodItemFormSchema } from "#/schema/food-item-schema";
 
 // TODO: Replace with actual data
@@ -628,11 +627,14 @@ const FoodItemsList = ({
             trailingActions={trailingSwipeActions(foodItem.id)}
             className="w-full rounded-md border bg-white p-3 shadow"
           >
-            <FoodItemCard
-              foodItem={foodItem}
-              editable={editable}
-              setEditedFoodItemForms={setEditedFoodItemForms}
-            />
+            {editable ? (
+              <FoodItemEditCard
+                foodItem={foodItem}
+                setEditedFoodItemForms={setEditedFoodItemForms}
+              />
+            ) : (
+              <FoodItemCard foodItem={foodItem} />
+            )}
           </SwipeableListItem>
         ))}
       </SwipeableList>
@@ -683,16 +685,8 @@ const FoodItemsEmpty = () => {
 
 interface FoodItemCardProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
-  editable: boolean;
-  setEditedFoodItemForms: Dispatch<
-    SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
-  >;
 }
-const FoodItemCard = ({
-  foodItem,
-  editable,
-  setEditedFoodItemForms,
-}: FoodItemCardProps) => {
+const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Calculate time to expiry
@@ -751,25 +745,18 @@ const FoodItemCard = ({
       .otherwise(() => "bg-green-600");
   }, [timeToExpiry]);
 
-  return editable ? (
-    <FoodItemEditMode
-      foodItem={foodItem}
-      setEditedFoodItemForms={setEditedFoodItemForms}
-    />
-  ) : (
-    <div className="flex w-full">
+  return (
+    <>
       <div className="relative flex self-start">
-        <Image
+        <img
           src={foodItem?.image_url ?? ""}
           alt={foodItem.name}
-          className="aspect-square rounded object-cover"
-          width="80"
-          height="80"
+          className="aspect-square h-28 w-20 rounded object-cover"
         />
       </div>
 
-      <div className="ml-3 flex flex-1 flex-col space-y-2 self-start">
-        <h2 className="font-semibold leading-none">{foodItem.name}</h2>
+      <div className="ml-3 flex flex-1 flex-col space-y-1.5 self-start">
+        <h2 className="line-clamp-1 font-semibold">{foodItem.name}</h2>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}
         </p>
@@ -805,7 +792,7 @@ const FoodItemCard = ({
         timeToExpiry={timeToExpiry}
         timeToExpiryColor={timeToExpiryColor}
       />
-    </div>
+    </>
   );
 };
 
@@ -995,16 +982,16 @@ const FoodItemDetails = ({
   );
 };
 
-interface FoodItemEditModeProps {
+interface FoodItemEditCardProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
   setEditedFoodItemForms: Dispatch<
     SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
   >;
 }
-const FoodItemEditMode = ({
+const FoodItemEditCard = ({
   foodItem,
   setEditedFoodItemForms,
-}: FoodItemEditModeProps) => {
+}: FoodItemEditCardProps) => {
   const form = useForm<z.infer<typeof foodItemFormSchema>>({
     resolver: zodResolver(foodItemFormSchema),
     defaultValues: {
@@ -1042,7 +1029,7 @@ const FoodItemEditMode = ({
   }, []);
 
   return (
-    <div className="flex w-full">
+    <>
       <div className="relative flex h-min self-start">
         <Avatar className="relative">
           <AvatarImage src={foodItem?.image_url ?? ""} />
@@ -1055,11 +1042,9 @@ const FoodItemEditMode = ({
         </Avatar>
       </div>
 
-      <Form {...form} className="ml-3 flex flex-1 flex-col space-y-2">
+      <Form {...form} className="ml-3 flex flex-1 flex-col space-y-1.5">
         <div className="flex items-center justify-between">
-          <h2 className="line-clamp-1 font-semibold leading-none">
-            {foodItem.name}
-          </h2>
+          <h2 className="line-clamp-1 font-semibold">{foodItem.name}</h2>
 
           {/* Checkbox field for consumption */}
           <FormField
@@ -1208,7 +1193,7 @@ const FoodItemEditMode = ({
           </div>
         </div>
       </Form>
-    </div>
+    </>
   );
 };
 
