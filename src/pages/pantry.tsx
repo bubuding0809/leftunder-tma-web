@@ -19,7 +19,13 @@ import {
   off as offTmaEvent,
   type MiniAppsEventListener,
 } from "@tma.js/sdk";
-import { ArrowUpDown, CalendarDays, CalendarIcon } from "lucide-react";
+import {
+  ArrowUpDown,
+  CalendarDays,
+  CalendarIcon,
+  Cross,
+  X,
+} from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
@@ -381,7 +387,10 @@ const PantryPage: NextPageWithLayout = () => {
                       });
                     }}
                   >
-                    {`${category.emoji} ${category.name}`}
+                    {categoryFilter.includes(category.name) && (
+                      <X className="h-4 w-4" />
+                    )}
+                    <span className="ml-1">{`${category.emoji} ${category.name}`}</span>
                   </Button>
                 </li>
               ))}
