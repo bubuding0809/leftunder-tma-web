@@ -152,7 +152,6 @@ const DetailsEditFormContent = ({
         tmaMainButton?.hideLoader();
         setIsEditMode(false);
         setDrawerOpen(true);
-        form.reset();
       },
     });
 
