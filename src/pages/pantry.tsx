@@ -542,42 +542,39 @@ const FoodItemsList = ({
           </div>
         </SwipeAction>
 
-        {/* Mark food as consumed */}
-        {statusFilter === "active" && (
-          <SwipeAction
-            destructive={true}
-            onClick={() => {
-              postEvent("web_app_trigger_haptic_feedback", {
-                type: "notification",
-                notification_type: "success",
-              });
-              updateConsumeStatusMutation.mutate(
-                { foodItemId, consumed: true },
-                {
-                  onSuccess: () => {
-                    // Show toast notification to allow user to undo the action
-                    onSendToast("Food item marked as consumed", "Undo", (t) => {
-                      postEvent("web_app_trigger_haptic_feedback", {
-                        type: "notification",
-                        notification_type: "success",
-                      });
-                      updateConsumeStatusMutation
-                        .mutateAsync({
-                          foodItemId: foodItemId,
-                          consumed: false,
-                        })
-                        .then(() => toast.dismiss(t.id));
+        <SwipeAction
+          destructive={true}
+          onClick={() => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
+            updateConsumeStatusMutation.mutate(
+              { foodItemId, consumed: true },
+              {
+                onSuccess: () => {
+                  // Show toast notification to allow user to undo the action
+                  onSendToast("Food item marked as consumed", "Undo", (t) => {
+                    postEvent("web_app_trigger_haptic_feedback", {
+                      type: "notification",
+                      notification_type: "success",
                     });
-                  },
+                    updateConsumeStatusMutation
+                      .mutateAsync({
+                        foodItemId: foodItemId,
+                        consumed: false,
+                      })
+                      .then(() => toast.dismiss(t.id));
+                  });
                 },
-              );
-            }}
-          >
-            <div className="flex items-center rounded-r-md bg-primary px-5">
-              <span className="text-md w-max text-white">✅</span>
-            </div>
-          </SwipeAction>
-        )}
+              },
+            );
+          }}
+        >
+          <div className="flex items-center rounded-r-md bg-primary px-5">
+            <span className="text-md w-max text-white">✅</span>
+          </div>
+        </SwipeAction>
       </TrailingActions>
     );
   };
@@ -593,7 +590,7 @@ const FoodItemsList = ({
           <SwipeableListItem
             key={foodItem.id}
             trailingActions={
-              statusFilter !== "expired" && trailingSwipeActions(foodItem.id)
+              statusFilter === "active" && trailingSwipeActions(foodItem.id)
             }
             className="w-full rounded-md border bg-white p-2 shadow"
           >
@@ -603,7 +600,7 @@ const FoodItemsList = ({
                 setEditedFoodItemForms={setEditedFoodItemForms}
               />
             ) : (
-              <FoodItemCard foodItem={foodItem} />
+              <FoodItemCard foodItem={foodItem} statusFilter={statusFilter} />
             )}
           </SwipeableListItem>
         ))}
@@ -654,9 +651,10 @@ const FoodItemsEmpty = () => {
 };
 
 interface FoodItemCardProps {
+  statusFilter: inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"];
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
 }
-const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
+const FoodItemCard = ({ foodItem, statusFilter }: FoodItemCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -762,6 +760,7 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         foodItem={foodItem}
         timeToExpiry={timeToExpiry}
         timeToExpiryColor={timeToExpiryColor}
+        statusFilter={statusFilter}
       />
 
       <DetailsEditForm

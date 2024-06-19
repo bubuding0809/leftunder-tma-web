@@ -1,7 +1,7 @@
 import { AppRouter } from "#/server/api/root";
 import { api } from "#/utils/api";
 import { postEvent } from "@tma.js/sdk-react";
-import { inferRouterOutputs } from "@trpc/server";
+import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { Dispatch, SetStateAction } from "react";
 import toast, { type Toast } from "react-hot-toast";
 import { Separator } from "../ui/separator";
@@ -58,6 +58,7 @@ interface DetailsDrawerProps {
   foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
   timeToExpiry: string;
   timeToExpiryColor: string;
+  statusFilter: inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"];
 }
 
 const DetailsDrawer = ({
@@ -67,6 +68,7 @@ const DetailsDrawer = ({
   foodItem,
   timeToExpiry,
   timeToExpiryColor,
+  statusFilter,
 }: DetailsDrawerProps) => {
   // TRPC utils to access query context
   const queryClient = api.useUtils();
@@ -219,29 +221,35 @@ const DetailsDrawer = ({
             </div>
           </div>
         </div>
-        <Separator />
-        <DrawerFooter>
-          <Button
-            onClick={() => onConsumeFoodItem()}
-            disabled={updateConsumeStatusMutation.isPending}
-          >
-            <span className="mr-1">
-              {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
-            </span>
-            Consumed
-          </Button>
-          <Button
-            variant="outline"
-            className="text-red-600"
-            onClick={() => onDeleteFoodItem()}
-            disabled={updateDeleteStatusMutation.isPending}
-          >
-            <span className="mr-1">
-              {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
-            </span>
-            Delete
-          </Button>
-        </DrawerFooter>
+        {statusFilter === "active" && (
+          <>
+            <Separator />
+            <DrawerFooter>
+              <Button
+                onClick={() => onConsumeFoodItem()}
+                disabled={updateConsumeStatusMutation.isPending}
+              >
+                <span className="mr-1">
+                  {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
+                </span>
+                Consumed
+              </Button>
+              <Button
+                variant="outline"
+                className="text-red-600"
+                onClick={() => onDeleteFoodItem()}
+                disabled={updateDeleteStatusMutation.isPending}
+              >
+                <span className="mr-1">
+                  {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
+                </span>
+                Delete
+              </Button>
+            </DrawerFooter>
+          </>
+        )}
+
+        {statusFilter !== "active" && <div className="py-2"></div>}
       </DrawerContent>
     </Drawer>
   );
