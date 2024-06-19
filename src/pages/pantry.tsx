@@ -5,7 +5,7 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Separator } from "#/components/ui/separator";
 import { Switch } from "#/components/ui/switch";
-import { NextPageWithLayout, josefinSans } from "#/pages/_app";
+import { NextPageWithLayout } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import {
   useClosingBehavior,
@@ -19,12 +19,7 @@ import {
   off as offTmaEvent,
   type MiniAppsEventListener,
 } from "@tma.js/sdk";
-import {
-  ArrowUpDown,
-  CalendarDays,
-  CalendarIcon,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowUpDown, CalendarDays, CalendarIcon } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
@@ -33,7 +28,7 @@ import {
   DrawerFooter,
   DrawerTrigger,
 } from "#/components/ui/drawer";
-import { cn } from "#/lib/utils";
+import { cn, stripLeadingZeros } from "#/lib/utils";
 import { api } from "#/utils/api";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
@@ -82,84 +77,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { foodItemFormSchema } from "#/schema/food-item-schema";
-
-// TODO: Replace with actual data
-const categories = [
-  {
-    name: "Fruits",
-    emoji: "🍎",
-  },
-  {
-    name: "Vegetables",
-    emoji: "🥦",
-  },
-  {
-    name: "Meat",
-    emoji: "🍖",
-  },
-  {
-    name: "Dairy",
-    emoji: "🧀",
-  },
-  {
-    name: "Snacks",
-    emoji: "🍿",
-  },
-  {
-    name: "Beverages",
-    emoji: "🥤",
-  },
-  {
-    name: "Condiments",
-    emoji: "🍯",
-  },
-  {
-    name: "Grains",
-    emoji: "🍚",
-  },
-  {
-    name: "Frozen Food",
-    emoji: "🧊",
-  },
-  {
-    name: "Canned Food",
-    emoji: "🥫",
-  },
-  {
-    name: "Pastries",
-    emoji: "🍩",
-  },
-  {
-    name: "Cooked Food",
-    emoji: "🍲",
-  },
-  {
-    name: "Others",
-    emoji: "🍴",
-  },
-];
-
-// TODO: Replace with actual data
-const units = [
-  "g",
-  "ml",
-  "oz",
-  "l",
-  "kg",
-  "piece",
-  "packet",
-  "bottle",
-  "cup",
-  "can",
-  "box",
-  "jar",
-  "container",
-  "bowl",
-  "carton",
-  "serving",
-  "others",
-];
+import {
+  categories,
+  foodItemFormSchema,
+  units,
+} from "#/schema/food-item-schema";
+import DetailsDrawer from "#/components/pantry/DetailsDrawer";
+import DetailsEditForm from "#/components/pantry/DetailsEditForm";
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
@@ -218,6 +142,9 @@ const PantryPage: NextPageWithLayout = () => {
       onSuccess: () => {
         queryClient.foodItem.getFilteredFoodItems.invalidate();
       },
+      onError: (error) => {
+        console.log("Failed to update food items", error);
+      },
     });
 
   const [editable, setEditable] = useState(false);
@@ -233,14 +160,7 @@ const PantryPage: NextPageWithLayout = () => {
     };
   }, [tmaClosingBehavior]);
 
-  // Enable main button for saving changes
   useEffect(() => {
-    tmaMainButton?.setParams({
-      bgColor: "#1C5638",
-      text: "Save changes",
-      isEnabled: true,
-    });
-
     // Enable save changes button on main button click
     const onMainButtonClicked = () => {
       toast.promise(
@@ -263,19 +183,38 @@ const PantryPage: NextPageWithLayout = () => {
           },
         },
       );
-
+      tmaMainButton?.off("click", onMainButtonClicked);
       setEditedFoodItemForms({});
       setEditable(false);
     };
-    tmaMainButton?.on("click", onMainButtonClicked);
 
-    // Show main button only when quick edit mode is enabled
-    editable ? tmaMainButton?.show() : tmaMainButton?.hide();
+    if (editable) {
+      tmaMainButton?.on("click", onMainButtonClicked);
+    } else {
+      tmaMainButton?.off("click", onMainButtonClicked);
+    }
 
     return () => {
       tmaMainButton?.off("click", onMainButtonClicked);
     };
-  }, [tmaMainButton, editedFoodItemForms, editable]);
+  }, [editable, editedFoodItemForms]);
+
+  useEffect(() => {
+    if (editable) {
+      tmaMainButton?.setParams({
+        bgColor: "#1C5638",
+        text: "💾 Save quick edit changes",
+      });
+      tmaMainButton?.enable();
+      tmaMainButton?.show();
+    } else {
+      tmaMainButton?.hide();
+    }
+
+    return () => {
+      tmaMainButton?.hide();
+    };
+  }, [editable]);
 
   const onSortChange = (value: string) => {
     postEvent("web_app_trigger_haptic_feedback", {
@@ -327,8 +266,6 @@ const PantryPage: NextPageWithLayout = () => {
       });
     }
   };
-
-  console.log(editable);
 
   return (
     <div className="relative">
@@ -688,6 +625,7 @@ interface FoodItemCardProps {
 }
 const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Calculate time to expiry
   const timeToExpiry = useMemo(() => {
@@ -786,200 +724,23 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         </p>
       </div>
 
-      <FoodItemDetails
+      <DetailsDrawer
         open={isDrawerOpen}
         setOpen={setIsDrawerOpen}
+        isEditMode={isEditMode}
+        setIsEditMode={setIsEditMode}
         foodItem={foodItem}
         timeToExpiry={timeToExpiry}
         timeToExpiryColor={timeToExpiryColor}
       />
+
+      <DetailsEditForm
+        setDrawerOpen={setIsDrawerOpen}
+        foodItem={foodItem}
+        setIsEditMode={setIsEditMode}
+        isEditMode={isEditMode}
+      />
     </>
-  );
-};
-
-interface FoodItemDetailsProps {
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0];
-  timeToExpiry: string;
-  timeToExpiryColor: string;
-}
-const FoodItemDetails = ({
-  open,
-  setOpen,
-  foodItem,
-  timeToExpiry,
-  timeToExpiryColor,
-}: FoodItemDetailsProps) => {
-  // TRPC utils to access query context
-  const queryClient = api.useUtils();
-
-  // TRPC mutation to mark food item as consumed and deleted
-  const updateConsumeStatusMutation =
-    api.foodItem.updateConsumeStatus.useMutation({
-      onSuccess: () => {
-        setOpen(false);
-        queryClient.foodItem.getFilteredFoodItems.invalidate();
-        queryClient.foodItem.getTotalFoodItemCount.invalidate();
-      },
-    });
-  const updateDeleteStatusMutation =
-    api.foodItem.updateDeleteStatus.useMutation({
-      onSuccess: () => {
-        setOpen(false);
-        queryClient.foodItem.getFilteredFoodItems.invalidate();
-        queryClient.foodItem.getTotalFoodItemCount.invalidate();
-      },
-    });
-
-  const onConsumeFoodItem = () => {
-    postEvent("web_app_trigger_haptic_feedback", {
-      type: "notification",
-      notification_type: "success",
-    });
-    updateConsumeStatusMutation.mutate(
-      { foodItemId: foodItem.id, consumed: true },
-      {
-        onSuccess: () => {
-          // Show toast notification to allow user to undo the action
-          onSendToast("Food item marked as consumed", "Undo", (t) => {
-            postEvent("web_app_trigger_haptic_feedback", {
-              type: "notification",
-              notification_type: "success",
-            });
-            updateConsumeStatusMutation
-              .mutateAsync({ foodItemId: foodItem.id, consumed: false })
-              .then(() => toast.dismiss(t.id));
-          });
-        },
-      },
-    );
-  };
-
-  const onDeleteFoodItem = () => {
-    postEvent("web_app_trigger_haptic_feedback", {
-      type: "notification",
-      notification_type: "success",
-    });
-    updateDeleteStatusMutation.mutate(
-      {
-        foodItemId: foodItem.id,
-        deleted: true,
-      },
-      {
-        onSuccess: () => {
-          // Show toast notification to allow user to undo the action
-          onSendToast("Food item deleted successfully", "Undo", (t) => {
-            postEvent("web_app_trigger_haptic_feedback", {
-              type: "notification",
-              notification_type: "success",
-            });
-            updateDeleteStatusMutation
-              .mutateAsync({
-                foodItemId: foodItem.id,
-                deleted: false,
-              })
-              .then(() => toast.dismiss(t.id));
-          });
-        },
-      },
-    );
-  };
-
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="ml-2 h-8 w-8 self-start rounded-full"
-        >
-          <ChevronRight className="h-4 w-4" strokeWidth={3} />
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent className={cn(josefinSans.className)}>
-        <div className="flex flex-col px-4 py-3">
-          <div className="relative">
-            <img
-              src={foodItem?.image_url ?? ""}
-              alt={foodItem.name}
-              className="aspect-video rounded object-contain shadow"
-            />
-            <Badge
-              variant="default"
-              className={cn(
-                "absolute bottom-2 left-2 flex items-center rounded pl-2 text-xs font-normal text-white",
-                timeToExpiryColor,
-              )}
-            >
-              <CalendarDays className="h-4 w-4" strokeWidth={2} />
-              <span className="ml-2 text-nowrap">{timeToExpiry}</span>
-            </Badge>
-          </div>
-
-          <div className="flex flex-1 flex-col space-y-2 px-1 pt-4">
-            <div className="flex items-center">
-              <h2 className="font-semibold">{foodItem.name}</h2>
-              <Button
-                size="sm"
-                variant="outline"
-                className="ml-auto h-6 w-min px-2 text-xs"
-              >
-                <span className="mr-1.5">✏️</span> Edit
-              </Button>
-            </div>
-            <p className="line-clamp-2 text-xs font-light text-zinc-700">
-              {foodItem.description}
-            </p>
-            <p className="text-xs text-zinc-500">
-              <span>
-                {
-                  categories.find(
-                    (category) => category.name === foodItem.category,
-                  )?.emoji
-                }{" "}
-                {foodItem.category}
-              </span>{" "}
-              |{" "}
-              <span>
-                {foodItem.quantity.toString()} {foodItem.unit}
-              </span>
-            </p>
-            <div className="flex flex-col space-y-2 pt-3 text-xs">
-              <p className="flex flex-col">
-                <span className="font-semibold">🗄️ Storage Instructions</span>
-                <span className="mt-1 font-light">
-                  {foodItem.storage_instructions}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-        <Separator />
-        <DrawerFooter>
-          <Button
-            onClick={() => onConsumeFoodItem()}
-            disabled={updateConsumeStatusMutation.isPending}
-          >
-            <span className="mr-1">
-              {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
-            </span>
-            Consumed
-          </Button>
-          <Button
-            variant="outline"
-            className="text-red-600"
-            onClick={() => onDeleteFoodItem()}
-            disabled={updateDeleteStatusMutation.isPending}
-          >
-            <span className="mr-1">
-              {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
-            </span>
-            Delete
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
   );
 };
 
@@ -999,7 +760,7 @@ const FoodItemEditCard = ({
       id: foodItem.id,
       expiryDate: new Date(foodItem.expiry_date ?? ""),
       category: foodItem.category,
-      quantity: Number(foodItem.quantity),
+      quantity: foodItem.quantity.toString(),
       unit: foodItem.unit,
       consumed: false,
     },
@@ -1162,8 +923,9 @@ const FoodItemEditCard = ({
                     min={0}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
-                      if (isNaN(value)) return onChange(0);
-                      onChange(value);
+                      if (isNaN(value)) return onChange("0");
+                      const cleaned = stripLeadingZeros(value);
+                      onChange(cleaned);
                     }}
                     {...field}
                   />

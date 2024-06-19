@@ -1,5 +1,6 @@
 import { foodItemFormSchema } from "#/schema/food-item-schema";
 import { publicProcedure } from "#/server/api/trpc";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const inputSchema = z.object({
@@ -17,9 +18,9 @@ export const updateManyFoodItemDetails = publicProcedure
           data: {
             expiry_date: foodItem.expiryDate,
             category: foodItem.category,
-            quantity: foodItem.quantity,
             unit: foodItem.unit,
             consumed: foodItem.consumed,
+            quantity: foodItem.quantity,
           },
         }),
       ),

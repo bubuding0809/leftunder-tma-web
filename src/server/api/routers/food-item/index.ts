@@ -3,6 +3,7 @@ import { getFilteredFoodItems } from "./getFilteredFoodItems";
 import { getTotalFoodItemCount } from "./getTotalFoodItemCount";
 import { updateConsumeStatus } from "./updateConsumeStatus";
 import { updateDeleteStatus } from "./updateDeleteStatus";
+import { updateFullFoodItemDetails } from "./updateFullFoodItemDetails";
 import { updateManyFoodItemDetails } from "./updateManyFoodItemDetails";
 
 export const foodItemRouter = createTRPCRouter({
@@ -11,4 +12,5 @@ export const foodItemRouter = createTRPCRouter({
   updateConsumeStatus,
   updateDeleteStatus,
   updateManyFoodItemDetails,
+  updateFullFoodItemDetails,
 });
