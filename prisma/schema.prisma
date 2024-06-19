@@ -20,7 +20,7 @@ model FoodItem {
   category             String
   quantity             Decimal   @db.Decimal
   unit                 String
-  expiry_date          DateTime? @db.Date
+  expiry_date          DateTime? @db.Timestamptz(6)
   shelf_life_days      BigInt?
   reminder_date        DateTime  @db.Date
   consumed             Boolean   @default(false)

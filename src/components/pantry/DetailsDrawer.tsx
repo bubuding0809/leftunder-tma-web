@@ -18,6 +18,7 @@ import { Badge } from "../ui/badge";
 import { cn } from "#/lib/utils";
 import { josefinSans } from "#/pages/_app";
 import { categories } from "#/schema/food-item-schema";
+import { format } from "date-fns";
 
 const onSendToast = (
   message: string,
@@ -51,7 +52,6 @@ const onSendToast = (
 };
 
 interface DetailsDrawerProps {
-  isEditMode: boolean;
   setIsEditMode: Dispatch<SetStateAction<boolean>>;
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -63,7 +63,6 @@ interface DetailsDrawerProps {
 const DetailsDrawer = ({
   open,
   setOpen,
-  isEditMode,
   setIsEditMode,
   foodItem,
   timeToExpiry,
@@ -172,6 +171,12 @@ const DetailsDrawer = ({
             >
               <CalendarDays className="h-4 w-4" strokeWidth={2} />
               <span className="ml-2 text-nowrap">{timeToExpiry}</span>
+              <span className="ml-1">
+                - expiring on{" "}
+                {foodItem.expiry_date
+                  ? format(foodItem.expiry_date, "PP")
+                  : "N/A"}
+              </span>
             </Badge>
           </div>
           <div className="flex flex-1 flex-col space-y-2 px-1 pt-4">

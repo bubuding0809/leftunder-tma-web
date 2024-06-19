@@ -84,6 +84,7 @@ import {
 } from "#/schema/food-item-schema";
 import DetailsDrawer from "#/components/pantry/DetailsDrawer";
 import DetailsEditForm from "#/components/pantry/DetailsEditForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
@@ -99,7 +100,13 @@ const PantryPage: NextPageWithLayout = () => {
     initialValue: "",
     delay: 250,
   });
-  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<
+    inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["category"]
+  >([]);
+  const [statusFilter, setStatusFilter] =
+    useState<
+      inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"]
+    >("active");
   const [sort, setSort] = useState<
     inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["sort"]
   >({
@@ -117,6 +124,7 @@ const PantryPage: NextPageWithLayout = () => {
       search: search,
       filters: {
         category: categoryFilter,
+        status: statusFilter,
       },
       sort: sort,
     },
@@ -142,9 +150,6 @@ const PantryPage: NextPageWithLayout = () => {
       onSuccess: () => {
         queryClient.foodItem.getFilteredFoodItems.invalidate();
       },
-      onError: (error) => {
-        console.log("Failed to update food items", error);
-      },
     });
 
   const [editable, setEditable] = useState(false);
@@ -152,7 +157,6 @@ const PantryPage: NextPageWithLayout = () => {
     Record<string, z.infer<typeof foodItemFormSchema>>
   >({});
 
-  // Enable confirmation dialog when closing the drawer to prevent accidental closing
   useEffect(() => {
     tmaClosingBehavior?.enableConfirmation();
     return () => {
@@ -268,151 +272,170 @@ const PantryPage: NextPageWithLayout = () => {
   };
 
   return (
-    <div className="relative">
-      <div className="sticky top-0 z-10 bg-white">
-        <div
-          className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
-          style={{
-            backgroundImage: `url(/assets/header_background.png)`,
-          }}
-        >
-          <hgroup className="flex items-center justify-between text-white">
-            <h1 className="text-2xl">
-              <span className="font-medium">
-                {initData?.user?.username ?? "User"}'s
-              </span>{" "}
-              pantry
-            </h1>
-            <p>{totalFoodItemCount} items</p>
-          </hgroup>
-          <div className="mt-2 flex gap-x-2">
-            <Input
-              placeholder="🔍 Search by food name"
-              className="text-[14px] placeholder:text-slate-400"
-              value={liveSearch}
-              onChange={(e) => setLiveSearch(e.target.value)}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="outline" className="min-w-10">
-                  <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48">
-                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={`${sort.field}:${sort.direction}`}
-                  onValueChange={onSortChange}
-                >
-                  <DropdownMenuRadioItem value="created_at:desc">
-                    ✍️ Newest first
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="created_at:asc">
-                    ✍️ Oldest first
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="expiry_date:desc">
-                    ⏳ Expiring last
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="expiry_date:asc">
-                    ⌛️ Expiring soon
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        <div className="bg-white">
-          <ul className="flex space-x-1 overflow-x-auto p-4 pb-2">
-            <li>
-              <Button
-                variant={categoryFilter.length ? "outline" : "default"}
-                size="sm"
-                className="border-none px-3 text-xs shadow"
-                onClick={() => {
-                  postEvent("web_app_trigger_haptic_feedback", {
-                    type: "notification",
-                    notification_type: "success",
-                  });
-                  setCategoryFilter([]);
-                }}
-              >
-                All
-              </Button>
-            </li>
-            {categories.map((category, index) => (
-              <li key={index}>
+    <Tabs
+      value={statusFilter}
+      onValueChange={(value) =>
+        setStatusFilter(value as "active" | "consumed" | "expired")
+      }
+    >
+      <div className="relative">
+        <div className="sticky top-0 z-10 border-b bg-white shadow-sm">
+          {!editable && (
+            <div
+              className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
+              style={{
+                backgroundImage: `url(/assets/header_background.png)`,
+              }}
+            >
+              <hgroup className="flex items-center justify-between text-white">
+                <h1 className="text-2xl">
+                  <span className="font-medium">
+                    {initData?.user?.username ?? "User"}'s
+                  </span>{" "}
+                  pantry
+                </h1>
+                <p>{totalFoodItemCount} items</p>
+              </hgroup>
+              <div className="mt-2 flex gap-x-2">
+                <Input
+                  placeholder="🔍 Search by food name"
+                  className="text-[14px] placeholder:text-slate-400"
+                  value={liveSearch}
+                  onChange={(e) => setLiveSearch(e.target.value)}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline" className="min-w-10">
+                      <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48">
+                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={`${sort.field}:${sort.direction}`}
+                      onValueChange={onSortChange}
+                    >
+                      <DropdownMenuRadioItem value="created_at:desc">
+                        ✍️ Newest first
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="created_at:asc">
+                        ✍️ Oldest first
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="expiry_date:desc">
+                        ⏳ Expiring last
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="expiry_date:asc">
+                        ⌛️ Expiring soon
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
+
+          {!editable && (
+            <div className="px-4 pt-2">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="consumed">Consumed</TabsTrigger>
+                <TabsTrigger value="expired">Expired</TabsTrigger>
+              </TabsList>
+            </div>
+          )}
+
+          <div className="bg-white pt-2">
+            <ul className="flex space-x-1 overflow-x-auto px-4 pb-2 pt-1">
+              <li>
                 <Button
-                  variant={
-                    categoryFilter.includes(category.name)
-                      ? "default"
-                      : "outline"
-                  }
+                  variant={categoryFilter.length ? "outline" : "default"}
                   size="sm"
-                  className="border-none px-2 text-xs shadow-md"
+                  className="border-none px-3 text-xs shadow"
                   onClick={() => {
                     postEvent("web_app_trigger_haptic_feedback", {
                       type: "notification",
                       notification_type: "success",
                     });
-                    setCategoryFilter((prev) => {
-                      if (prev.includes(category.name)) {
-                        return prev.filter((item) => item !== category.name);
-                      }
-                      return [...prev, category.name];
-                    });
+                    setCategoryFilter([]);
                   }}
                 >
-                  {`${category.emoji} ${category.name}`}
+                  All
                 </Button>
               </li>
-            ))}
-          </ul>
+              {categories.map((category, index) => (
+                <li key={index}>
+                  <Button
+                    variant={
+                      categoryFilter.includes(category.name)
+                        ? "default"
+                        : "outline"
+                    }
+                    size="sm"
+                    className="border-none px-2 text-xs shadow-md"
+                    onClick={() => {
+                      postEvent("web_app_trigger_haptic_feedback", {
+                        type: "notification",
+                        notification_type: "success",
+                      });
+                      setCategoryFilter((prev) => {
+                        if (prev.includes(category.name)) {
+                          return prev.filter((item) => item !== category.name);
+                        }
+                        return [...prev, category.name];
+                      });
+                    }}
+                  >
+                    {`${category.emoji} ${category.name}`}
+                  </Button>
+                </li>
+              ))}
+            </ul>
 
-          <div className="flex items-center justify-between px-4 pb-3 pt-2 text-sm">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="airplane-mode"
-                checked={editable}
-                onCheckedChange={onQuickEditToggle}
-              />
-              <Label htmlFor="airplane-mode">Quick edit</Label>
-            </div>
-            <div>
-              Showing {foodItemsQuery.data?.length} of {totalFoodItemCount}{" "}
-              items
+            <div className="flex items-center justify-between px-4 pb-3 pt-2 text-sm">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="airplane-mode"
+                  checked={editable}
+                  onCheckedChange={onQuickEditToggle}
+                />
+                <Label htmlFor="airplane-mode">Quick edit</Label>
+              </div>
+              <div>
+                Showing {foodItemsQuery.data?.length} of {totalFoodItemCount}{" "}
+                items
+              </div>
             </div>
           </div>
         </div>
-        <Separator className="shadow" />
+        {match(foodItemsQuery)
+          .with(
+            {
+              status: "success",
+            },
+            ({ data }) => (
+              <FoodItemsList
+                foodItems={data}
+                editable={editable}
+                setEditedFoodItemForms={setEditedFoodItemForms}
+              />
+            ),
+          )
+          .with(
+            {
+              status: "pending",
+            },
+            () => <FoodItemsLoading />,
+          )
+          .with(
+            {
+              status: "error",
+            },
+            ({ error }) => <FoodItemsError errorMessage={error.message} />,
+          )
+          .exhaustive()}
       </div>
-      {match(foodItemsQuery)
-        .with(
-          {
-            status: "success",
-          },
-          ({ data }) => (
-            <FoodItemsList
-              foodItems={data}
-              editable={editable}
-              setEditedFoodItemForms={setEditedFoodItemForms}
-            />
-          ),
-        )
-        .with(
-          {
-            status: "pending",
-          },
-          () => <FoodItemsLoading />,
-        )
-        .with(
-          {
-            status: "error",
-          },
-          ({ error }) => <FoodItemsError errorMessage={error.message} />,
-        )
-        .exhaustive()}
-    </div>
+    </Tabs>
   );
 };
 
@@ -725,7 +748,6 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
       <DetailsDrawer
         open={isDrawerOpen}
         setOpen={setIsDrawerOpen}
-        isEditMode={isEditMode}
         setIsEditMode={setIsEditMode}
         foodItem={foodItem}
         timeToExpiry={timeToExpiry}

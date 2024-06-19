@@ -1,18 +1,21 @@
 import { z } from "zod";
 import { publicProcedure } from "../../trpc";
 
-const inputSchema = z.object({
+export const inputSchema = z.object({
   telegramUserId: z.number().optional(),
   search: z.string(),
   filters: z.object({
     category: z.array(z.string()),
+    status: z.union([
+      z.literal("active"),
+      z.literal("consumed"),
+      z.literal("expired"),
+    ]),
   }),
   sort: z.object({
     field: z.string(),
     direction: z.union([z.literal("asc"), z.literal("desc")]),
   }),
-  showConsumed: z.boolean().default(false),
-  showDeleted: z.boolean().default(false),
 });
 
 export const getFilteredFoodItems = publicProcedure
@@ -21,9 +24,25 @@ export const getFilteredFoodItems = publicProcedure
     const {
       telegramUserId,
       search,
-      filters: { category },
+      filters: { category, status },
       sort: { field, direction },
     } = input;
+
+    // For active case show only items that are not consumed and not expired
+    const statusFilter = {
+      active: {
+        AND: [
+          { consumed: { equals: false } },
+          { expiry_date: { gte: new Date() } },
+        ],
+      },
+      consumed: {
+        consumed: { equals: true },
+      },
+      expired: {
+        expiry_date: { lt: new Date() },
+      },
+    };
 
     return await ctx.db.foodItem.findMany({
       where: {
@@ -34,25 +53,11 @@ export const getFilteredFoodItems = publicProcedure
           contains: search,
           mode: "insensitive",
         },
-        // Filter by consumed and discarded status
-        AND: [
-          {
-            OR: [
-              { consumed: { equals: false } },
-              { consumed: { equals: input.showConsumed } },
-            ],
-          },
-          {
-            OR: [
-              { discarded: { equals: false } },
-              { discarded: { equals: input.showDeleted } },
-            ],
-          },
-        ],
-        // Filter by category if provided else return all
+        discarded: { equals: false },
         category: category.length
           ? { in: category, mode: "insensitive" }
           : undefined,
+        ...statusFilter[status],
       },
       orderBy: [
         {
