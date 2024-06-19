@@ -27,7 +27,14 @@ import {
   X,
 } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  use,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Drawer,
   DrawerContent,
@@ -39,7 +46,7 @@ import { api } from "#/utils/api";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
 import { match } from "ts-pattern";
-import { differenceInDays, format, set } from "date-fns";
+import { differenceInDays, format, isAfter, isBefore, set } from "date-fns";
 import Spinner from "#/components/ui/spinner";
 import useDebounce from "#/hooks/useDebounce";
 import {
@@ -85,7 +92,7 @@ import {
 } from "#/schema/food-item-schema";
 import DetailsDrawer from "#/components/pantry/DetailsDrawer";
 import DetailsEditForm from "#/components/pantry/DetailsEditForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
@@ -276,76 +283,68 @@ const PantryPage: NextPageWithLayout = () => {
     <Tabs
       value={statusFilter}
       onValueChange={(value) =>
-        setStatusFilter(value as "active" | "consumed" | "expired")
+        setStatusFilter(
+          value as inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"],
+        )
       }
     >
       <div className="relative">
         <div className="sticky top-0 z-10 border-b bg-white shadow-sm">
-          {!editable && (
-            <div
-              className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
-              style={{
-                backgroundImage: `url(/assets/header_background.png)`,
-              }}
-            >
-              <hgroup className="flex items-center justify-between text-white">
-                <h1 className="text-2xl">
-                  <span className="font-medium">
-                    {initData?.user?.username ?? "User"}'s
-                  </span>{" "}
-                  pantry
-                </h1>
-                <p>{totalFoodItemCount} items</p>
-              </hgroup>
-              <div className="mt-2 flex gap-x-2">
-                <Input
-                  placeholder="🔍 Search by food name"
-                  className="text-[14px] placeholder:text-slate-400"
-                  value={liveSearch}
-                  onChange={(e) => setLiveSearch(e.target.value)}
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline" className="min-w-10">
-                      <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48">
-                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={`${sort.field}:${sort.direction}`}
-                      onValueChange={onSortChange}
-                    >
-                      <DropdownMenuRadioItem value="created_at:desc">
-                        ✍️ Newest first
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="created_at:asc">
-                        ✍️ Oldest first
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="expiry_date:desc">
-                        ⏳ Expiring last
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="expiry_date:asc">
-                        ⌛️ Expiring soon
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          {/* Top header */}
+          <div
+            className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
+            style={{
+              backgroundImage: `url(/assets/header_background.png)`,
+            }}
+          >
+            <hgroup className="flex items-center justify-between text-white">
+              <h1 className="text-2xl">
+                <span className="font-medium">
+                  {initData?.user?.username ?? "User"}'s
+                </span>{" "}
+                pantry
+              </h1>
+              <p>{totalFoodItemCount} items</p>
+            </hgroup>
+            <div className="mt-2 flex gap-x-2">
+              <Input
+                placeholder="🔍 Search by food name"
+                className="text-[14px] placeholder:text-slate-400"
+                value={liveSearch}
+                onChange={(e) => setLiveSearch(e.target.value)}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="outline" className="min-w-10">
+                    <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48">
+                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={`${sort.field}:${sort.direction}`}
+                    onValueChange={onSortChange}
+                  >
+                    <DropdownMenuRadioItem value="created_at:desc">
+                      ✍️ Newest first
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="created_at:asc">
+                      ✍️ Oldest first
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="expiry_date:desc">
+                      ⏳ Expiring last
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="expiry_date:asc">
+                      ⌛️ Expiring soon
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          )}
+          </div>
 
-          {!editable && (
-            <div className="px-4 pt-2">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="consumed">Consumed</TabsTrigger>
-                <TabsTrigger value="expired">Expired</TabsTrigger>
-              </TabsList>
-            </div>
-          )}
-
+          {/* Filter bar */}
           <div className="bg-white pt-2">
             <ul className="flex space-x-1 overflow-x-auto px-4 pb-2 pt-1">
               <li>
@@ -396,7 +395,7 @@ const PantryPage: NextPageWithLayout = () => {
               ))}
             </ul>
 
-            <div className="flex items-center justify-between px-4 pb-3 pt-2 text-sm">
+            <div className="flex items-center justify-between px-4 pb-2 pt-2 text-sm">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="airplane-mode"
@@ -405,10 +404,10 @@ const PantryPage: NextPageWithLayout = () => {
                 />
                 <Label htmlFor="airplane-mode">Quick edit</Label>
               </div>
-              <div>
-                Showing {foodItemsQuery.data?.length} of {totalFoodItemCount}{" "}
-                items
-              </div>
+              <TabsList className="ml-auto grid w-48 grid-cols-2">
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
+              </TabsList>
             </div>
           </div>
         </div>
@@ -505,76 +504,137 @@ const FoodItemsList = ({
       },
     });
 
-  const trailingSwipeActions = (foodItemId: string) => {
+  const today = set(new Date(), {
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  });
+
+  const trailingSwipeActions = (
+    foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0],
+  ) => {
     return (
       <TrailingActions>
-        <SwipeAction
-          destructive={true}
-          onClick={() => {
-            postEvent("web_app_trigger_haptic_feedback", {
-              type: "notification",
-              notification_type: "success",
-            });
-            updateDeleteStatusMutation.mutate(
-              { foodItemId, deleted: true },
-              {
-                onSuccess: () => {
-                  // Show toast notification to allow user to undo the action
-                  onSendToast("Food item deleted successfully", "Undo", (t) => {
-                    postEvent("web_app_trigger_haptic_feedback", {
-                      type: "notification",
-                      notification_type: "success",
-                    });
-                    updateDeleteStatusMutation
-                      .mutateAsync({
-                        foodItemId: foodItemId,
-                        deleted: false,
-                      })
-                      .then(() => toast.dismiss(t.id));
-                  });
-                },
-              },
-            );
-          }}
-        >
-          <div className="flex items-center bg-destructive px-5">
-            <span className="text-md w-max text-white">🗑️</span>
-          </div>
-        </SwipeAction>
+        {/* Delete item action */}
+        {!foodItem.consumed &&
+          isAfter(new Date(foodItem.expiry_date!), today) && (
+            <SwipeAction
+              destructive={true}
+              onClick={() => {
+                postEvent("web_app_trigger_haptic_feedback", {
+                  type: "notification",
+                  notification_type: "success",
+                });
+                updateDeleteStatusMutation.mutate(
+                  { foodItemId: foodItem.id, deleted: true },
+                  {
+                    onSuccess: () => {
+                      // Show toast notification to allow user to undo the action
+                      onSendToast(
+                        "Food item deleted successfully",
+                        "Undo",
+                        (t) => {
+                          postEvent("web_app_trigger_haptic_feedback", {
+                            type: "notification",
+                            notification_type: "success",
+                          });
+                          updateDeleteStatusMutation
+                            .mutateAsync({
+                              foodItemId: foodItem.id,
+                              deleted: false,
+                            })
+                            .then(() => toast.dismiss(t.id));
+                        },
+                      );
+                    },
+                  },
+                );
+              }}
+            >
+              <div className="flex items-center bg-destructive px-5">
+                <span className="text-md w-max text-white">🗑️</span>
+              </div>
+            </SwipeAction>
+          )}
 
-        <SwipeAction
-          destructive={true}
-          onClick={() => {
-            postEvent("web_app_trigger_haptic_feedback", {
-              type: "notification",
-              notification_type: "success",
-            });
-            updateConsumeStatusMutation.mutate(
-              { foodItemId, consumed: true },
-              {
-                onSuccess: () => {
-                  // Show toast notification to allow user to undo the action
-                  onSendToast("Food item marked as consumed", "Undo", (t) => {
-                    postEvent("web_app_trigger_haptic_feedback", {
-                      type: "notification",
-                      notification_type: "success",
+        {/* Consume item action */}
+        {!foodItem.consumed && (
+          <SwipeAction
+            destructive={!isBefore(new Date(foodItem.expiry_date!), today)}
+            onClick={() => {
+              postEvent("web_app_trigger_haptic_feedback", {
+                type: "notification",
+                notification_type: "success",
+              });
+              updateConsumeStatusMutation.mutate(
+                { foodItemId: foodItem.id, consumed: true },
+                {
+                  onSuccess: () => {
+                    // Show toast notification to allow user to undo the action
+                    onSendToast("Food item marked as consumed", "Undo", (t) => {
+                      postEvent("web_app_trigger_haptic_feedback", {
+                        type: "notification",
+                        notification_type: "success",
+                      });
+                      updateConsumeStatusMutation
+                        .mutateAsync({
+                          foodItemId: foodItem.id,
+                          consumed: false,
+                        })
+                        .then(() => toast.dismiss(t.id));
                     });
-                    updateConsumeStatusMutation
-                      .mutateAsync({
-                        foodItemId: foodItemId,
-                        consumed: false,
-                      })
-                      .then(() => toast.dismiss(t.id));
-                  });
+                  },
                 },
-              },
-            );
-          }}
-        >
-          <div className="flex items-center rounded-r-md bg-primary px-5">
-            <span className="text-md w-max text-white">✅</span>
-          </div>
-        </SwipeAction>
+              );
+            }}
+          >
+            <div className="flex items-center rounded-r-md bg-primary px-5">
+              <span className="text-md w-max text-white">✅</span>
+            </div>
+          </SwipeAction>
+        )}
+
+        {/* Unconsume item action */}
+        {foodItem.consumed && (
+          <SwipeAction
+            destructive={!isBefore(new Date(foodItem.expiry_date!), today)}
+            onClick={() => {
+              postEvent("web_app_trigger_haptic_feedback", {
+                type: "notification",
+                notification_type: "success",
+              });
+              updateConsumeStatusMutation.mutate(
+                { foodItemId: foodItem.id, consumed: false },
+                {
+                  onSuccess: () => {
+                    // Show toast notification to allow user to undo the action
+                    onSendToast(
+                      "Food item marked as unconsumed",
+                      "Undo",
+                      (t) => {
+                        postEvent("web_app_trigger_haptic_feedback", {
+                          type: "notification",
+                          notification_type: "success",
+                        });
+                        updateConsumeStatusMutation
+                          .mutateAsync({
+                            foodItemId: foodItem.id,
+                            consumed: true,
+                          })
+                          .then(() => toast.dismiss(t.id));
+                      },
+                    );
+                  },
+                },
+              );
+            }}
+          >
+            <div className="flex items-center rounded-r-md bg-accent px-5">
+              <span className="text-md w-max text-white">↩️</span>
+            </div>
+          </SwipeAction>
+        )}
       </TrailingActions>
     );
   };
@@ -582,17 +642,20 @@ const FoodItemsList = ({
   if (foodItems.length > 0) {
     return (
       <SwipeableList
-        className="space-y-3 p-4"
+        className="space-y-4 p-4"
         type={Type.IOS}
         destructiveCallbackDelay={250}
       >
         {foodItems.map((foodItem) => (
           <SwipeableListItem
             key={foodItem.id}
-            trailingActions={
-              statusFilter === "active" && trailingSwipeActions(foodItem.id)
-            }
-            className="w-full rounded-md border bg-white p-2 shadow"
+            trailingActions={trailingSwipeActions(foodItem)}
+            className={cn(
+              "w-full rounded-md border bg-white p-2 shadow",
+              !foodItem.consumed &&
+                isBefore(new Date(foodItem.expiry_date!), today) &&
+                "opacity-60",
+            )}
           >
             {editable ? (
               <FoodItemEditCard
@@ -697,6 +760,8 @@ const FoodItemCard = ({ foodItem, statusFilter }: FoodItemCardProps) => {
 
   // Color code time to expiry
   const timeToExpiryColor = useMemo(() => {
+    if (foodItem.consumed) return "bg-green-600";
+
     const daysLeft = differenceInDays(
       new Date(foodItem.expiry_date!),
       new Date(),
@@ -712,7 +777,7 @@ const FoodItemCard = ({ foodItem, statusFilter }: FoodItemCardProps) => {
         () => "bg-yellow-600",
       )
       .otherwise(() => "bg-green-600");
-  }, [timeToExpiry]);
+  }, [timeToExpiry, foodItem.consumed]);
 
   return (
     <>
@@ -733,12 +798,18 @@ const FoodItemCard = ({ foodItem, statusFilter }: FoodItemCardProps) => {
         <Badge
           variant="default"
           className={cn(
-            "flex w-fit items-center rounded pl-2 text-xs font-normal text-white",
+            "flex w-fit items-center rounded text-xs font-normal text-white",
             timeToExpiryColor,
           )}
         >
-          <CalendarDays className="h-4 w-4" strokeWidth={2} />
-          <span className="ml-2 text-nowrap">{timeToExpiry}</span>
+          {foodItem.consumed ? (
+            <span>💚 consumed</span>
+          ) : (
+            <>
+              <CalendarDays className="h-4 w-4" strokeWidth={2} />
+              <span className="ml-2 text-nowrap">{timeToExpiry}</span>
+            </>
+          )}
         </Badge>
         <p className="text-xs text-zinc-500">
           <span>
@@ -849,30 +920,32 @@ const FoodItemEditCard = ({
           <h2 className="line-clamp-1 font-semibold">{foodItem.name}</h2>
 
           {/* Checkbox field for consumption */}
-          <FormField
-            control={form.control}
-            name="consumed"
-            render={({ field }) => (
-              <div className="ml-1 flex items-center space-x-1">
-                <Label
-                  htmlFor={`consumed-${foodItem.id}`}
-                  className={cn(
-                    "text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-                    checkedForConsumed
-                      ? "text-primary"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  Consumed
-                </Label>
-                <Checkbox
-                  id={`consumed-${foodItem.id}`}
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </div>
-            )}
-          />
+          {!foodItem.consumed && (
+            <FormField
+              control={form.control}
+              name="consumed"
+              render={({ field }) => (
+                <div className="ml-1 flex items-center space-x-1">
+                  <Label
+                    htmlFor={`consumed-${foodItem.id}`}
+                    className={cn(
+                      "text-xs font-medium leading-none text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                      checkedForConsumed
+                        ? "text-primary"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    Consumed
+                  </Label>
+                  <Checkbox
+                    id={`consumed-${foodItem.id}`}
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
+          )}
         </div>
         <p className="line-clamp-2 text-xs font-light text-zinc-700">
           {foodItem.description}

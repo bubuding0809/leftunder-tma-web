@@ -12,10 +12,7 @@ export const getTotalFoodItemCount = publicProcedure
         User: {
           telegram_user_id: input.telegramUserId,
         },
-        AND: [
-          { discarded: { equals: false } },
-          { consumed: { equals: false } },
-        ],
+        discarded: false,
       },
     });
   });

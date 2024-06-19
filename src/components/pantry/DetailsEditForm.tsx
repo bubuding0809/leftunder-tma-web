@@ -84,6 +84,20 @@ const DetailsEditForm = ({
     },
   });
 
+  useEffect(() => {
+    form.reset({
+      id: foodItem.id,
+      name: foodItem.name,
+      description: foodItem.description,
+      category: foodItem.category,
+      quantity: foodItem.quantity.toString(),
+      unit: foodItem.unit,
+      expiryDate: foodItem.expiry_date ?? new Date(),
+      consumed: foodItem.consumed,
+      storageInstructions: foodItem.storage_instructions,
+    });
+  }, [foodItem]);
+
   const onOpenChange = (open: boolean) => {
     // Ask user to confirm if they want to discard changes when closing the form
     if (!open && form.formState.isDirty) {

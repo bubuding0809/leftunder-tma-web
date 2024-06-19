@@ -19,6 +19,7 @@ import { cn } from "#/lib/utils";
 import { josefinSans } from "#/pages/_app";
 import { categories } from "#/schema/food-item-schema";
 import { format } from "date-fns";
+import { match } from "ts-pattern";
 
 const onSendToast = (
   message: string,
@@ -115,6 +116,30 @@ const DetailsDrawer = ({
     );
   };
 
+  const onUnConsumeFoodItem = () => {
+    postEvent("web_app_trigger_haptic_feedback", {
+      type: "notification",
+      notification_type: "success",
+    });
+    updateConsumeStatusMutation.mutate(
+      { foodItemId: foodItem.id, consumed: false },
+      {
+        onSuccess: () => {
+          // Show toast notification to allow user to undo the action
+          onSendToast("Food item marked as unconsumed", "Undo", (t) => {
+            postEvent("web_app_trigger_haptic_feedback", {
+              type: "notification",
+              notification_type: "success",
+            });
+            updateConsumeStatusMutation
+              .mutateAsync({ foodItemId: foodItem.id, consumed: true })
+              .then(() => toast.dismiss(t.id));
+          });
+        },
+      },
+    );
+  };
+
   const onDeleteFoodItem = () => {
     postEvent("web_app_trigger_haptic_feedback", {
       type: "notification",
@@ -173,12 +198,10 @@ const DetailsDrawer = ({
             >
               <CalendarDays className="h-4 w-4" strokeWidth={2} />
               <span className="ml-2 text-nowrap">{timeToExpiry}</span>
-              <span className="ml-1">
-                - expiring on{" "}
-                {foodItem.expiry_date
-                  ? format(foodItem.expiry_date, "PP")
-                  : "N/A"}
-              </span>
+              <span className="mx-1">-</span>
+              {foodItem.expiry_date
+                ? format(foodItem.expiry_date, "PP")
+                : "N/A"}
             </Badge>
           </div>
           <div className="flex flex-1 flex-col space-y-2 px-1 pt-4">
@@ -221,10 +244,24 @@ const DetailsDrawer = ({
             </div>
           </div>
         </div>
-        {statusFilter === "active" && (
-          <>
-            <Separator />
-            <DrawerFooter>
+
+        <Separator />
+
+        <DrawerFooter>
+          {match([statusFilter, foodItem.consumed])
+            .with(["past", true], () => (
+              <Button
+                variant="outline"
+                onClick={() => onUnConsumeFoodItem()}
+                disabled={updateConsumeStatusMutation.isPending}
+              >
+                <span className="mr-1">
+                  {updateConsumeStatusMutation.isPending ? <Spinner /> : "↩️"}
+                </span>
+                Unconsume
+              </Button>
+            ))
+            .with(["past", false], () => (
               <Button
                 onClick={() => onConsumeFoodItem()}
                 disabled={updateConsumeStatusMutation.isPending}
@@ -232,24 +269,34 @@ const DetailsDrawer = ({
                 <span className="mr-1">
                   {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
                 </span>
-                Consumed
+                Consume
               </Button>
-              <Button
-                variant="outline"
-                className="text-red-600"
-                onClick={() => onDeleteFoodItem()}
-                disabled={updateDeleteStatusMutation.isPending}
-              >
-                <span className="mr-1">
-                  {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
-                </span>
-                Delete
-              </Button>
-            </DrawerFooter>
-          </>
-        )}
-
-        {statusFilter !== "active" && <div className="py-2"></div>}
+            ))
+            .otherwise(() => (
+              <>
+                <Button
+                  onClick={() => onConsumeFoodItem()}
+                  disabled={updateConsumeStatusMutation.isPending}
+                >
+                  <span className="mr-1">
+                    {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
+                  </span>
+                  Consume
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-red-600"
+                  onClick={() => onDeleteFoodItem()}
+                  disabled={updateDeleteStatusMutation.isPending}
+                >
+                  <span className="mr-1">
+                    {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
+                  </span>
+                  Delete
+                </Button>
+              </>
+            ))}
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
