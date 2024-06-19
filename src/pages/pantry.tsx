@@ -64,12 +64,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "#/components/ui/form";
+import { FormField } from "#/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -418,6 +413,7 @@ const PantryPage: NextPageWithLayout = () => {
                 foodItems={data}
                 editable={editable}
                 setEditedFoodItemForms={setEditedFoodItemForms}
+                statusFilter={statusFilter}
               />
             ),
           )
@@ -476,11 +472,13 @@ interface FoodItemsListProps {
   setEditedFoodItemForms: Dispatch<
     SetStateAction<Record<string, z.infer<typeof foodItemFormSchema>>>
   >;
+  statusFilter: inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"];
 }
 const FoodItemsList = ({
   foodItems,
   editable,
   setEditedFoodItemForms,
+  statusFilter,
 }: FoodItemsListProps) => {
   const queryClient = api.useUtils();
   const updateConsumeStatusMutation =
@@ -501,7 +499,6 @@ const FoodItemsList = ({
   const trailingSwipeActions = (foodItemId: string) => {
     return (
       <TrailingActions>
-        {/* Mark food as deleted */}
         <SwipeAction
           destructive={true}
           onClick={() => {
@@ -537,39 +534,41 @@ const FoodItemsList = ({
         </SwipeAction>
 
         {/* Mark food as consumed */}
-        <SwipeAction
-          destructive={true}
-          onClick={() => {
-            postEvent("web_app_trigger_haptic_feedback", {
-              type: "notification",
-              notification_type: "success",
-            });
-            updateConsumeStatusMutation.mutate(
-              { foodItemId, consumed: true },
-              {
-                onSuccess: () => {
-                  // Show toast notification to allow user to undo the action
-                  onSendToast("Food item marked as consumed", "Undo", (t) => {
-                    postEvent("web_app_trigger_haptic_feedback", {
-                      type: "notification",
-                      notification_type: "success",
+        {statusFilter === "active" && (
+          <SwipeAction
+            destructive={true}
+            onClick={() => {
+              postEvent("web_app_trigger_haptic_feedback", {
+                type: "notification",
+                notification_type: "success",
+              });
+              updateConsumeStatusMutation.mutate(
+                { foodItemId, consumed: true },
+                {
+                  onSuccess: () => {
+                    // Show toast notification to allow user to undo the action
+                    onSendToast("Food item marked as consumed", "Undo", (t) => {
+                      postEvent("web_app_trigger_haptic_feedback", {
+                        type: "notification",
+                        notification_type: "success",
+                      });
+                      updateConsumeStatusMutation
+                        .mutateAsync({
+                          foodItemId: foodItemId,
+                          consumed: false,
+                        })
+                        .then(() => toast.dismiss(t.id));
                     });
-                    updateConsumeStatusMutation
-                      .mutateAsync({
-                        foodItemId: foodItemId,
-                        consumed: false,
-                      })
-                      .then(() => toast.dismiss(t.id));
-                  });
+                  },
                 },
-              },
-            );
-          }}
-        >
-          <div className="flex items-center rounded-r-md bg-primary px-5">
-            <span className="text-md w-max text-white">✅</span>
-          </div>
-        </SwipeAction>
+              );
+            }}
+          >
+            <div className="flex items-center rounded-r-md bg-primary px-5">
+              <span className="text-md w-max text-white">✅</span>
+            </div>
+          </SwipeAction>
+        )}
       </TrailingActions>
     );
   };
@@ -584,7 +583,9 @@ const FoodItemsList = ({
         {foodItems.map((foodItem) => (
           <SwipeableListItem
             key={foodItem.id}
-            trailingActions={trailingSwipeActions(foodItem.id)}
+            trailingActions={
+              statusFilter !== "expired" && trailingSwipeActions(foodItem.id)
+            }
             className="w-full rounded-md border bg-white p-2 shadow"
           >
             {editable ? (
