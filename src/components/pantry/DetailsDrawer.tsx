@@ -1,13 +1,8 @@
 import { AppRouter } from "#/server/api/root";
 import { api } from "#/utils/api";
-import { postEvent, usePopup } from "@tma.js/sdk-react";
-import {
-  on as onTmaEvent,
-  off as offTmaEvent,
-  MiniAppsEventListener,
-} from "@tma.js/sdk";
+import { postEvent } from "@tma.js/sdk-react";
 import { inferRouterOutputs } from "@trpc/server";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import toast, { type Toast } from "react-hot-toast";
 import { Separator } from "../ui/separator";
 import {
@@ -23,7 +18,6 @@ import { Badge } from "../ui/badge";
 import { cn } from "#/lib/utils";
 import { josefinSans } from "#/pages/_app";
 import { categories } from "#/schema/food-item-schema";
-import DetailsEditForm from "./DetailsEditForm";
 
 const onSendToast = (
   message: string,

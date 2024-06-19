@@ -711,10 +711,8 @@ const FoodItemCard = ({ foodItem }: FoodItemCardProps) => {
         </Badge>
         <p className="text-xs text-zinc-500">
           <span>
-            {
-              categories.find((category) => category.name === foodItem.category)
-                ?.emoji
-            }{" "}
+            {categories.find((category) => category.name === foodItem.category)
+              ?.emoji ?? "🍴"}{" "}
             {foodItem.category}
           </span>{" "}
           |{" "}
@@ -767,13 +765,26 @@ const FoodItemEditCard = ({
   });
 
   const checkedForConsumed = form.watch("consumed");
-  const unitField = form.watch("unit");
+
   const unitOptions = useMemo(() => {
-    if (units.includes(unitField)) {
+    if (units.includes(foodItem.unit)) {
       return units;
     }
-    return [...units, unitField];
-  }, [unitField, units]);
+    return [...units, foodItem.unit];
+  }, [foodItem.unit, units]);
+
+  const categoryOptions = useMemo(() => {
+    if (categories.find((category) => category.name === foodItem.category)) {
+      return categories;
+    }
+    return [
+      ...categories,
+      {
+        name: foodItem.category,
+        emoji: "🍴",
+      },
+    ];
+  }, [foodItem.category, categories]);
 
   // Update edited food item forms when form values change
   useEffect(() => {
@@ -796,10 +807,8 @@ const FoodItemEditCard = ({
         <Avatar className="relative">
           <AvatarImage src={foodItem?.image_url ?? ""} />
           <AvatarFallback>
-            {
-              categories.find((category) => category.name === foodItem.category)
-                ?.emoji
-            }
+            {categories.find((category) => category.name === foodItem.category)
+              ?.emoji ?? "🍴"}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -893,7 +902,7 @@ const FoodItemEditCard = ({
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category, index) => (
+                      {categoryOptions.map((category, index) => (
                         <SelectItem key={index} value={category.name}>
                           <span>
                             {category.emoji} {category.name}

@@ -1,7 +1,6 @@
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,7 +27,7 @@ import {
   useMainButton,
   usePopup,
 } from "@tma.js/sdk-react";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import { inferRouterOutputs } from "@trpc/server";
 import { AppRouter } from "#/server/api/root";
 import { Label } from "#components/ui/label";
@@ -139,6 +138,7 @@ const DetailsEditFormContent = ({
   form,
   setIsEditMode,
   setDrawerOpen,
+  foodItem,
 }: DetailsEditFormContentProps) => {
   const tmaMainButton = useMainButton(true);
   const queryClient = api.useUtils();
@@ -227,6 +227,26 @@ const DetailsEditFormContent = ({
     console.error(data);
   };
 
+  const unitOptions = useMemo(() => {
+    if (units.includes(foodItem.unit)) {
+      return units;
+    }
+    return [...units, foodItem.unit];
+  }, [units, foodItem.unit]);
+
+  const categoryOptions = useMemo(() => {
+    if (categories.find((category) => category.name === foodItem.category)) {
+      return categories;
+    }
+    return [
+      ...categories,
+      {
+        name: foodItem.category,
+        emoji: "🍴",
+      },
+    ];
+  }, [categories, foodItem.category]);
+
   return (
     <>
       <DialogHeader>
@@ -273,7 +293,7 @@ const DetailsEditFormContent = ({
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category, index) => (
+                      {categoryOptions.map((category, index) => (
                         <SelectItem key={index} value={category.name}>
                           <span className="text-base">
                             {category.emoji} {category.name}
@@ -404,7 +424,7 @@ const DetailsEditFormContent = ({
                           <SelectValue placeholder="Select a unit" />
                         </SelectTrigger>
                         <SelectContent>
-                          {units.map((unit, index) => (
+                          {unitOptions.map((unit, index) => (
                             <SelectItem key={index} value={unit}>
                               <span className="text-base">{unit}</span>
                             </SelectItem>
