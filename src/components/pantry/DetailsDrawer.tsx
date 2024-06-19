@@ -194,11 +194,9 @@ const DetailsDrawer = ({
             </p>
             <p className="text-xs text-zinc-500">
               <span>
-                {
-                  categories.find(
-                    (category) => category.name === foodItem.category,
-                  )?.emoji
-                }{" "}
+                {categories.find(
+                  (category) => category.name === foodItem.category,
+                )?.emoji ?? "🍴"}{" "}
                 {foodItem.category}
               </span>{" "}
               |{" "}
