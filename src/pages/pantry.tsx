@@ -93,6 +93,7 @@ import {
 import DetailsDrawer from "#/components/pantry/DetailsDrawer";
 import DetailsEditForm from "#/components/pantry/DetailsEditForm";
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
+import Image from "next/image";
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
@@ -782,12 +783,14 @@ const FoodItemCard = ({ foodItem, statusFilter }: FoodItemCardProps) => {
   return (
     <>
       <div className="relative flex self-start">
-        <img
-          loading="lazy"
-          src={foodItem?.image_url ?? ""}
-          alt={foodItem.name}
-          className="aspect-square h-28 w-28 rounded object-cover"
-        />
+        <div className="relative aspect-square h-28 w-28">
+          <Image
+            src={foodItem?.image_url ?? ""}
+            className="rounded object-cover"
+            alt={foodItem.name}
+            fill
+          />
+        </div>
       </div>
 
       <div className="ml-3 flex flex-1 flex-col space-y-1.5 self-start">

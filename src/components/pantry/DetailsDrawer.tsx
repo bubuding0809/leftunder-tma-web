@@ -20,6 +20,7 @@ import { josefinSans } from "#/pages/_app";
 import { categories } from "#/schema/food-item-schema";
 import { format } from "date-fns";
 import { match } from "ts-pattern";
+import Image from "next/image";
 
 const onSendToast = (
   message: string,
@@ -184,11 +185,14 @@ const DetailsDrawer = ({
       <DrawerContent className={cn(josefinSans.className)}>
         <div className="flex flex-col px-4 py-3">
           <div className="relative">
-            <img
-              src={foodItem?.image_url ?? ""}
-              alt={foodItem.name}
-              className="aspect-video rounded object-contain shadow"
-            />
+            <div className="relative aspect-video">
+              <Image
+                src={foodItem?.image_url ?? ""}
+                alt={foodItem.name}
+                className="rounded object-contain shadow"
+                fill
+              />
+            </div>
             <Badge
               variant="default"
               className={cn(

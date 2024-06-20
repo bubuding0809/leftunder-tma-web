@@ -28,6 +28,8 @@ const config = {
       {
         protocol: "https",
         hostname: "fprskgybcquiadthlkly.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/public-assets/**",
       },
     ],
   },
