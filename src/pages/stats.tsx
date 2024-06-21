@@ -240,7 +240,7 @@ const StatsPage: NextPageWithLayout = () => {
               <div className="absolute bottom-4 right-20">
                 <BubblePinkSvg />
               </div>
-              <div className="absolute bottom-2 right-[150px]">
+              <div className="absolute bottom-2 right-[155px]">
                 <BubblePurpleSvg />
               </div>
             </div>
