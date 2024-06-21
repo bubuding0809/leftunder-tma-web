@@ -515,49 +515,58 @@ const FoodItemsList = ({
   const trailingSwipeActions = (
     foodItem: inferRouterOutputs<AppRouter>["foodItem"]["getFilteredFoodItems"][0],
   ) => {
+    const isExpired = isBefore(
+      set(new Date(foodItem.expiry_date!), {
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }),
+      today,
+    );
+
     return (
       <TrailingActions>
         {/* Delete item action */}
-        {!foodItem.consumed &&
-          isAfter(new Date(foodItem.expiry_date!), today) && (
-            <SwipeAction
-              destructive={true}
-              onClick={() => {
-                postEvent("web_app_trigger_haptic_feedback", {
-                  type: "notification",
-                  notification_type: "success",
-                });
-                updateDeleteStatusMutation.mutate(
-                  { foodItemId: foodItem.id, deleted: true },
-                  {
-                    onSuccess: () => {
-                      // Show toast notification to allow user to undo the action
-                      onSendToast(
-                        "Food item deleted successfully",
-                        "Undo",
-                        (t) => {
-                          postEvent("web_app_trigger_haptic_feedback", {
-                            type: "notification",
-                            notification_type: "success",
-                          });
-                          updateDeleteStatusMutation
-                            .mutateAsync({
-                              foodItemId: foodItem.id,
-                              deleted: false,
-                            })
-                            .then(() => toast.dismiss(t.id));
-                        },
-                      );
-                    },
+        {!foodItem.consumed && !isExpired && (
+          <SwipeAction
+            destructive={true}
+            onClick={() => {
+              postEvent("web_app_trigger_haptic_feedback", {
+                type: "notification",
+                notification_type: "success",
+              });
+              updateDeleteStatusMutation.mutate(
+                { foodItemId: foodItem.id, deleted: true },
+                {
+                  onSuccess: () => {
+                    // Show toast notification to allow user to undo the action
+                    onSendToast(
+                      "Food item deleted successfully",
+                      "Undo",
+                      (t) => {
+                        postEvent("web_app_trigger_haptic_feedback", {
+                          type: "notification",
+                          notification_type: "success",
+                        });
+                        updateDeleteStatusMutation
+                          .mutateAsync({
+                            foodItemId: foodItem.id,
+                            deleted: false,
+                          })
+                          .then(() => toast.dismiss(t.id));
+                      },
+                    );
                   },
-                );
-              }}
-            >
-              <div className="flex items-center bg-destructive px-5">
-                <span className="text-md w-max text-white">🗑️</span>
-              </div>
-            </SwipeAction>
-          )}
+                },
+              );
+            }}
+          >
+            <div className="flex items-center bg-destructive px-5">
+              <span className="text-md w-max text-white">🗑️</span>
+            </div>
+          </SwipeAction>
+        )}
 
         {/* Consume item action */}
         {!foodItem.consumed && (
