@@ -1,9 +1,8 @@
 import MainLayout from "#/components/layouts/MainLayout";
 import { TmaSDKLoader } from "#/components/layouts/TmaSdkLoader";
-import { Button } from "#/components/ui/button";
+import { Button, buttonVariants } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import { Separator } from "#/components/ui/separator";
 import { Switch } from "#/components/ui/switch";
 import { NextPageWithLayout } from "#/pages/_app";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
@@ -20,10 +19,15 @@ import {
   type MiniAppsEventListener,
 } from "@tma.js/sdk";
 import {
+  AlignLeft,
   ArrowUpDown,
   CalendarDays,
   CalendarIcon,
+  ChevronRight,
   Cross,
+  HeartHandshake,
+  Home,
+  Leaf,
   X,
 } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
@@ -94,6 +98,9 @@ import DetailsDrawer from "#/components/pantry/DetailsDrawer";
 import DetailsEditForm from "#/components/pantry/DetailsEditForm";
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import Image from "next/image";
+import { Sheet, SheetContent, SheetTrigger } from "#/components/ui/sheet";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const PantryPage: NextPageWithLayout = () => {
   const initData = useInitData(true);
@@ -109,6 +116,8 @@ const PantryPage: NextPageWithLayout = () => {
     initialValue: "",
     delay: 250,
   });
+  const pathName = usePathname();
+
   const [categoryFilter, setCategoryFilter] = useState<
     inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["category"]
   >([]);
@@ -281,166 +290,226 @@ const PantryPage: NextPageWithLayout = () => {
   };
 
   return (
-    <Tabs
-      value={statusFilter}
-      onValueChange={(value) =>
-        setStatusFilter(
-          value as inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"],
-        )
-      }
-    >
-      <div className="relative">
-        <div className="sticky top-0 z-10 border-b bg-white shadow-sm">
-          {/* Top header */}
-          <div
-            className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
-            style={{
-              backgroundImage: `url(/assets/header_background.png)`,
-            }}
-          >
-            <hgroup className="flex items-center justify-between text-white">
-              <h1 className="text-2xl">
-                <span className="font-medium">
-                  {initData?.user?.username ?? "User"}'s
-                </span>{" "}
-                pantry
-              </h1>
-              <p>{totalFoodItemCount} items</p>
-            </hgroup>
-            <div className="mt-2 flex gap-x-2">
-              <Input
-                placeholder="🔍 Search by food name"
-                className="text-[14px] placeholder:text-slate-400"
-                value={liveSearch}
-                onChange={(e) => setLiveSearch(e.target.value)}
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="outline" className="min-w-10">
-                    <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48">
-                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={`${sort.field}:${sort.direction}`}
-                    onValueChange={onSortChange}
-                  >
-                    <DropdownMenuRadioItem value="created_at:desc">
-                      ✍️ Newest first
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="created_at:asc">
-                      ✍️ Oldest first
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="expiry_date:desc">
-                      ⏳ Expiring last
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="expiry_date:asc">
-                      ⌛️ Expiring soon
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {/* Filter bar */}
-          <div className="bg-white pt-2">
-            <ul className="flex space-x-1 overflow-x-auto px-4 pb-2 pt-1">
-              <li>
+    <div className="relative">
+      <div className="sticky top-0 z-10 border-b bg-white shadow-sm">
+        {/* Top header */}
+        <div
+          className="rounded-b-3xl bg-cover bg-left-bottom bg-no-repeat px-4 pb-5 pt-8"
+          style={{
+            backgroundImage: `url(/assets/header_background.png)`,
+          }}
+        >
+          <div className="flex items-center space-x-2">
+            <Sheet>
+              <SheetTrigger asChild>
                 <Button
-                  variant={categoryFilter.length ? "outline" : "default"}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 ring-offset-2 hover:bg-transparent hover:ring-1"
+                >
+                  <AlignLeft className="h-6 w-6 text-white" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <nav className="pt-10">
+                  <ul className="flex flex-col space-y-10">
+                    <Link
+                      href="/pantry"
+                      className={cn("flex items-center space-x-2")}
+                    >
+                      <Home className="h-5 w-5" />
+                      <p
+                        className={cn(
+                          pathName === "/pantry" && "font-semibold",
+                        )}
+                      >
+                        My pantry
+                      </p>
+                    </Link>
+                    <Link
+                      href="/stats"
+                      className={cn("flex items-center space-x-2")}
+                    >
+                      <Leaf className="h-5 w-5" />
+                      <p
+                        className={cn(pathName === "/stats" && "font-semibold")}
+                      >
+                        My Stats
+                      </p>
+                    </Link>
+                    <Link
+                      href="/donate"
+                      className={cn("flex items-center space-x-2")}
+                    >
+                      <HeartHandshake className="h-5 w-5" />
+                      <p
+                        className={cn(
+                          pathName === "/donate" && "font-semibold",
+                        )}
+                      >
+                        Donate
+                      </p>
+                    </Link>
+                    <li className="flex items-center space-x-2"></li>
+                    <li className="flex items-center space-x-2"></li>
+                  </ul>
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <hgroup className="flex w-full items-center justify-between text-white">
+              <h1 className="text-2xl">
+                <span className="font-medium">Pantry</span>
+              </h1>
+              <Link href="/stats" className="flex items-center">
+                <span>My stats 🟢</span>
+                <ChevronRight className="h-4 w-4" strokeWidth={2} />
+              </Link>
+            </hgroup>
+          </div>
+          <div className="mt-2 flex gap-x-2">
+            <Input
+              placeholder="🔍 Search by food name"
+              className="text-[14px] placeholder:text-slate-400"
+              value={liveSearch}
+              onChange={(e) => setLiveSearch(e.target.value)}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline" className="min-w-10">
+                  <ArrowUpDown className="h-4 w-4" strokeWidth={2} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={`${sort.field}:${sort.direction}`}
+                  onValueChange={onSortChange}
+                >
+                  <DropdownMenuRadioItem value="created_at:desc">
+                    ✍️ Newest first
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="created_at:asc">
+                    ✍️ Oldest first
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="expiry_date:desc">
+                    ⏳ Expiring last
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="expiry_date:asc">
+                    ⌛️ Expiring soon
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div className="bg-white pt-2">
+          <ul className="flex space-x-1 overflow-x-auto px-4 pb-2 pt-1">
+            <li>
+              <Button
+                variant={categoryFilter.length ? "outline" : "default"}
+                size="sm"
+                className="border-none px-3 text-xs shadow"
+                onClick={() => {
+                  postEvent("web_app_trigger_haptic_feedback", {
+                    type: "notification",
+                    notification_type: "success",
+                  });
+                  setCategoryFilter([]);
+                }}
+              >
+                All
+              </Button>
+            </li>
+            {categories.map((category, index) => (
+              <li key={index}>
+                <Button
+                  variant={
+                    categoryFilter.includes(category.name)
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
-                  className="border-none px-3 text-xs shadow"
+                  className="border-none px-2 text-xs shadow-md"
                   onClick={() => {
                     postEvent("web_app_trigger_haptic_feedback", {
                       type: "notification",
                       notification_type: "success",
                     });
-                    setCategoryFilter([]);
+                    setCategoryFilter((prev) => {
+                      if (prev.includes(category.name)) {
+                        return prev.filter((item) => item !== category.name);
+                      }
+                      return [...prev, category.name];
+                    });
                   }}
                 >
-                  All
+                  {categoryFilter.includes(category.name) && (
+                    <X className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">{`${category.emoji} ${category.name}`}</span>
                 </Button>
               </li>
-              {categories.map((category, index) => (
-                <li key={index}>
-                  <Button
-                    variant={
-                      categoryFilter.includes(category.name)
-                        ? "default"
-                        : "outline"
-                    }
-                    size="sm"
-                    className="border-none px-2 text-xs shadow-md"
-                    onClick={() => {
-                      postEvent("web_app_trigger_haptic_feedback", {
-                        type: "notification",
-                        notification_type: "success",
-                      });
-                      setCategoryFilter((prev) => {
-                        if (prev.includes(category.name)) {
-                          return prev.filter((item) => item !== category.name);
-                        }
-                        return [...prev, category.name];
-                      });
-                    }}
-                  >
-                    {categoryFilter.includes(category.name) && (
-                      <X className="h-4 w-4" />
-                    )}
-                    <span className="ml-1">{`${category.emoji} ${category.name}`}</span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            ))}
+          </ul>
 
-            <div className="flex items-center justify-between px-4 pb-2 pt-2 text-sm">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="airplane-mode"
-                  checked={editable}
-                  onCheckedChange={onQuickEditToggle}
-                />
-                <Label htmlFor="airplane-mode">Quick edit</Label>
-              </div>
+          <div className="flex items-center justify-between px-4 pb-2 pt-2 text-sm">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="airplane-mode"
+                checked={editable}
+                onCheckedChange={onQuickEditToggle}
+              />
+              <Label htmlFor="airplane-mode">Quick edit</Label>
+            </div>
+            <Tabs
+              value={statusFilter}
+              onValueChange={(value) =>
+                setStatusFilter(
+                  value as inferRouterInputs<AppRouter>["foodItem"]["getFilteredFoodItems"]["filters"]["status"],
+                )
+              }
+            >
               <TabsList className="ml-auto grid w-48 grid-cols-2">
                 <TabsTrigger value="active">Active</TabsTrigger>
                 <TabsTrigger value="past">Past</TabsTrigger>
               </TabsList>
-            </div>
+            </Tabs>
           </div>
         </div>
-        {match(foodItemsQuery)
-          .with(
-            {
-              status: "success",
-            },
-            ({ data }) => (
-              <FoodItemsList
-                foodItems={data}
-                editable={editable}
-                setEditedFoodItemForms={setEditedFoodItemForms}
-                statusFilter={statusFilter}
-              />
-            ),
-          )
-          .with(
-            {
-              status: "pending",
-            },
-            () => <FoodItemsLoading />,
-          )
-          .with(
-            {
-              status: "error",
-            },
-            ({ error }) => <FoodItemsError errorMessage={error.message} />,
-          )
-          .exhaustive()}
       </div>
-    </Tabs>
+
+      {/* Food item list */}
+      {match(foodItemsQuery)
+        .with(
+          {
+            status: "success",
+          },
+          ({ data }) => (
+            <FoodItemsList
+              foodItems={data}
+              editable={editable}
+              setEditedFoodItemForms={setEditedFoodItemForms}
+              statusFilter={statusFilter}
+            />
+          ),
+        )
+        .with(
+          {
+            status: "pending",
+          },
+          () => <FoodItemsLoading />,
+        )
+        .with(
+          {
+            status: "error",
+          },
+          ({ error }) => <FoodItemsError errorMessage={error.message} />,
+        )
+        .exhaustive()}
+    </div>
   );
 };
 
