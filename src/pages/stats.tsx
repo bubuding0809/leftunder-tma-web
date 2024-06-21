@@ -2,7 +2,7 @@ import MainLayout from "#/components/layouts/MainLayout";
 import { TmaSDKLoader } from "#/components/layouts/TmaSdkLoader";
 import { Button } from "#/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "#/components/ui/sheet";
-import { AlignLeft, HeartHandshake, Home, Leaf } from "lucide-react";
+import { AlignLeft, EggFried, HeartHandshake, Home, Leaf } from "lucide-react";
 import { NextPageWithLayout } from "./_app";
 import Link from "next/link";
 import { cn } from "#/lib/utils";
@@ -12,6 +12,7 @@ import { useInitData } from "@tma.js/sdk-react";
 const StatsPage: NextPageWithLayout = () => {
   const pathName = usePathname();
   const initData = useInitData(true);
+
   return (
     <div className="relative">
       <div className="sticky top-0 z-10">
@@ -58,6 +59,19 @@ const StatsPage: NextPageWithLayout = () => {
                         className={cn(pathName === "/stats" && "font-semibold")}
                       >
                         My Stats
+                      </p>
+                    </Link>
+                    <Link
+                      href="/recipe"
+                      className={cn("flex items-center space-x-2")}
+                    >
+                      <EggFried className="h-5 w-5" />
+                      <p
+                        className={cn(
+                          pathName === "/recipe" && "font-semibold",
+                        )}
+                      >
+                        Recipe Generator
                       </p>
                     </Link>
                     <Link

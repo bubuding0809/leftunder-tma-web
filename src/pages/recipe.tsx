@@ -14,11 +14,10 @@ import { NextPageWithLayout } from "./_app";
 import Link from "next/link";
 import { cn } from "#/lib/utils";
 import { usePathname } from "next/navigation";
-import { useInitData } from "@tma.js/sdk-react";
 
-const StatsPage: NextPageWithLayout = () => {
+const RecipePage: NextPageWithLayout = () => {
   const pathName = usePathname();
-  const initData = useInitData(true);
+
   return (
     <div className="relative">
       <div className="sticky top-0 z-10">
@@ -100,7 +99,7 @@ const StatsPage: NextPageWithLayout = () => {
               </SheetContent>
             </Sheet>
             <hgroup className="flex items-center justify-between text-white">
-              <h1 className="text-2xl">Donate</h1>
+              <h1 className="text-2xl">Recipes</h1>
             </hgroup>
           </div>
         </div>
@@ -122,12 +121,12 @@ const StatsPage: NextPageWithLayout = () => {
   );
 };
 
-StatsPage.getLayout = (page) => {
+RecipePage.getLayout = (page) => {
   return (
     <TmaSDKLoader>
-      <MainLayout title="Stats">{page}</MainLayout>
+      <MainLayout title="Recipe">{page}</MainLayout>
     </TmaSDKLoader>
   );
 };
 
-export default StatsPage;
+export default RecipePage;

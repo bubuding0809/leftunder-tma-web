@@ -25,6 +25,7 @@ import {
   CalendarIcon,
   ChevronRight,
   Cross,
+  EggFried,
   HeartHandshake,
   Home,
   Leaf,
@@ -335,6 +336,19 @@ const PantryPage: NextPageWithLayout = () => {
                         className={cn(pathName === "/stats" && "font-semibold")}
                       >
                         My Stats
+                      </p>
+                    </Link>
+                    <Link
+                      href="/recipe"
+                      className={cn("flex items-center space-x-2")}
+                    >
+                      <EggFried className="h-5 w-5" />
+                      <p
+                        className={cn(
+                          pathName === "/recipe" && "font-semibold",
+                        )}
+                      >
+                        Recipe Generator
                       </p>
                     </Link>
                     <Link
