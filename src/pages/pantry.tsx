@@ -528,7 +528,7 @@ const FoodItemsList = ({
     return (
       <TrailingActions>
         {/* Delete item action */}
-        {!foodItem.consumed && !isExpired && (
+        {
           <SwipeAction
             destructive={true}
             onClick={() => {
@@ -566,7 +566,7 @@ const FoodItemsList = ({
               <span className="text-md w-max text-white">🗑️</span>
             </div>
           </SwipeAction>
-        )}
+        }
 
         {/* Consume item action */}
         {!foodItem.consumed && (
@@ -663,7 +663,15 @@ const FoodItemsList = ({
             className={cn(
               "w-full rounded-md border bg-white p-2 shadow",
               !foodItem.consumed &&
-                isBefore(new Date(foodItem.expiry_date!), today) &&
+                isBefore(
+                  set(new Date(foodItem.expiry_date!), {
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    milliseconds: 0,
+                  }),
+                  today,
+                ) &&
                 "opacity-60",
             )}
           >

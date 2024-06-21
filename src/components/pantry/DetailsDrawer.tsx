@@ -254,27 +254,29 @@ const DetailsDrawer = ({
         <DrawerFooter>
           {match([statusFilter, foodItem.consumed])
             .with(["past", true], () => (
-              <Button
-                variant="outline"
-                onClick={() => onUnConsumeFoodItem()}
-                disabled={updateConsumeStatusMutation.isPending}
-              >
-                <span className="mr-1">
-                  {updateConsumeStatusMutation.isPending ? <Spinner /> : "↩️"}
-                </span>
-                Unconsume
-              </Button>
-            ))
-            .with(["past", false], () => (
-              <Button
-                onClick={() => onConsumeFoodItem()}
-                disabled={updateConsumeStatusMutation.isPending}
-              >
-                <span className="mr-1">
-                  {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
-                </span>
-                Consume
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => onUnConsumeFoodItem()}
+                  disabled={updateConsumeStatusMutation.isPending}
+                >
+                  <span className="mr-1">
+                    {updateConsumeStatusMutation.isPending ? <Spinner /> : "↩️"}
+                  </span>
+                  Not Consumed
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-red-600"
+                  onClick={() => onDeleteFoodItem()}
+                  disabled={updateDeleteStatusMutation.isPending}
+                >
+                  <span className="mr-1">
+                    {updateDeleteStatusMutation.isPending ? <Spinner /> : "❌"}
+                  </span>
+                  Delete
+                </Button>
+              </>
             ))
             .otherwise(() => (
               <>
