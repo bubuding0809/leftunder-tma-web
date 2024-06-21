@@ -287,7 +287,7 @@ const DetailsDrawer = ({
                   <span className="mr-1">
                     {updateConsumeStatusMutation.isPending ? <Spinner /> : "✅"}
                   </span>
-                  Consume
+                  Consumed
                 </Button>
                 <Button
                   variant="outline"
