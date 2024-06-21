@@ -110,7 +110,7 @@ const RecipePage: NextPageWithLayout = () => {
           Work in progress
         </p>
         <span className="mt-2 text-center text-sm text-gray-500">
-          Feature coming soon, stay tuned!
+          Recipe generator feature coming soon, stay tuned!
         </span>
         <Link href="/pantry" className={cn(buttonVariants(), "mt-4")}>
           <ChevronLeft className="h-5 w-5" />
